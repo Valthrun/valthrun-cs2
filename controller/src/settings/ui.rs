@@ -608,6 +608,7 @@ impl SettingsUI {
                 ui.checkbox(obfstr!("Health"), &mut config.info_hp_text);
                 ui.checkbox(obfstr!("Kit"), &mut config.info_flag_kit);
                 ui.checkbox(obfstr!("Flashed"), &mut config.info_flag_flashed);
+                ui.checkbox(obfstr!("Bomb Carrier"), &mut config.info_flag_bomb);
                 ui.checkbox(obfstr!("Grenades"), &mut config.info_grenades);
                 ui.checkbox(obfstr!("Near only"), &mut config.near_players);
                 if config.near_players {

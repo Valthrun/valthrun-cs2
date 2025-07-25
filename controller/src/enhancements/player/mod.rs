@@ -520,6 +520,10 @@ impl Enhancement for PlayerESP {
                     player_flags.push("Kit");
                 }
 
+                if esp_settings.info_flag_bomb && pawn_info.player_has_bomb {
+                    player_flags.push("Bomb Carrier");
+                }
+
                 if esp_settings.info_flag_flashed && pawn_info.player_flashtime > 0.0 {
                     player_flags.push("flashed");
                 }

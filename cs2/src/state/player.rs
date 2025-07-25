@@ -19,6 +19,7 @@ use cs2_schema_generated::cs2::client::{
     C_CSPlayerPawn,
     C_CSPlayerPawnBase,
     C_EconEntity,
+    C_C4,
 };
 use utils_state::{
     State,
@@ -31,7 +32,9 @@ use crate::{
         CBoneStateData,
         CModelStateEx,
     },
+    CEntityIdentityEx,
     CS2Model,
+    ClassNameCache,
     StateCS2Memory,
     StateEntityList,
     WeaponId,
@@ -45,6 +48,7 @@ pub struct StatePawnInfo {
 
     pub player_health: i32,
     pub player_has_defuser: bool,
+    pub player_has_bomb: bool,
     pub player_name: Option<String>,
     pub weapon: WeaponId,
     pub player_flashtime: f32,
@@ -166,6 +170,30 @@ impl State for StatePawnInfo {
 
         let player_flashtime = player_pawn.m_flFlashBangTime()?;
 
+        let player_has_bomb = entities
+            .entities()
+            .iter()
+            .find_map(|entity| {
+                let cache = states.resolve::<ClassNameCache>(()).ok()?;
+                let class_info = entity.entity_class_info().ok()?;
+                let class_name = cache.lookup(&class_info).ok()??;
+
+                if class_name != "C_C4" {
+                    return None;
+                }
+
+                let owner_handle = entity
+                    .entity_ptr::<dyn C_EconEntity>()
+                    .ok()?
+                    .value_reference(memory.view_arc())?
+                    .cast::<dyn C_C4>()
+                    .m_hOwnerEntity()
+                    .ok()?;
+
+                Some(owner_handle.get_entity_index() == handle.get_entity_index())
+            })
+            .unwrap_or(false);
+
         Ok(Self {
             controller_entity_id: if controller_handle.is_valid() {
                 Some(controller_handle.get_entity_index())
@@ -178,6 +206,7 @@ impl State for StatePawnInfo {
 
             player_name,
             player_has_defuser,
+            player_has_bomb,
             player_health,
             weapon: WeaponId::from_id(weapon_type).unwrap_or(WeaponId::Unknown),
             player_flashtime,
