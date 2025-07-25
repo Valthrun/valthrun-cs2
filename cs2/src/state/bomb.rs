@@ -2,9 +2,11 @@ use std::ffi::CStr;
 
 use anyhow::Context;
 use cs2_schema_generated::cs2::client::{
+    C_BaseEntity,
     C_BasePlayerPawn,
     C_PlantedC4,
 };
+use nalgebra::Vector3;
 use obfstr::obfstr;
 use utils_state::{
     State,
@@ -57,6 +59,9 @@ pub struct PlantedC4 {
     /// Current state of the planted C4
     pub state: PlantedC4State,
 
+    /// Position of the planted bomb.
+    pub position: Vector3<f32>,
+
     /// Current bomb defuser
     pub defuser: Option<BombDefuser>,
 }
@@ -88,6 +93,17 @@ impl State for PlantedC4 {
                 .value_copy(memory.view())?
                 .context("bomb entity nullptr")?;
 
+            let game_scene_node = entity_identity
+                .entity_ptr::<dyn C_BaseEntity>()?
+                .value_reference(memory.view_arc())
+                .context("C_BaseEntity pointer was null")?
+                .m_pGameSceneNode()?
+                .value_reference(memory.view_arc())
+                .context("m_pGameSceneNode pointer was null")?
+                .copy()?;
+
+            let position = game_scene_node.m_vecAbsOrigin()?;
+
             if !bomb.m_bC4Activated()? {
                 /* This bomb hasn't been activated (yet) */
                 continue;
@@ -97,6 +113,7 @@ impl State for PlantedC4 {
             if bomb.m_bBombDefused()? {
                 return Ok(Self {
                     bomb_site,
+                    position: position.into(),
                     defuser: None,
                     state: PlantedC4State::Defused,
                 });
@@ -107,6 +124,7 @@ impl State for PlantedC4 {
             if time_blow <= globals.time_2()? {
                 return Ok(Self {
                     bomb_site,
+                    position: position.into(),
                     defuser: None,
                     state: PlantedC4State::Detonated,
                 });
@@ -148,6 +166,7 @@ impl State for PlantedC4 {
             return Ok(Self {
                 bomb_site,
                 defuser: defusing,
+                position: position.into(),
                 state: PlantedC4State::Active {
                     time_detonation: time_blow - globals.time_2()?,
                 },
@@ -157,6 +176,7 @@ impl State for PlantedC4 {
         return Ok(Self {
             bomb_site: 0,
             defuser: None,
+            position: Default::default(),
             state: PlantedC4State::NotPlanted,
         });
     }
