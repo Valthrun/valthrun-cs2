@@ -254,18 +254,18 @@ impl SettingsUI {
 
                         {
                             let _enabled = ui.begin_enabled(matches!(settings.esp_mode, KeyToggleMode::Toggle | KeyToggleMode::Trigger));
-                            ui.button_key_optional(obfstr!("ESP toggle/trigger"), &mut settings.esp_toogle, [150.0, 0.0]);
+                            ui.button_key_optional(obfstr!("ESP Toggle/Hold"), &mut settings.esp_toogle, [150.0, 0.0]);
                         }
                     }
 
                     if let Some(_tab) = ui.tab_item(obfstr!("Visuals")) {
                         ui.set_next_item_width(150.0);
                         ui.combo_enum(obfstr!("ESP"), &[
-                            (KeyToggleMode::Off, "Always Off"),
-                            (KeyToggleMode::Trigger, "Trigger"),
-                            (KeyToggleMode::TriggerInverted, "Trigger Inverted"),
+                            (KeyToggleMode::Off, "Off"),
+                            (KeyToggleMode::Trigger, "Hold"),
+                            (KeyToggleMode::TriggerInverted, "Hold Inverted"),
                             (KeyToggleMode::Toggle, "Toggle"),
-                            (KeyToggleMode::AlwaysOn, "Always On"),
+                            (KeyToggleMode::AlwaysOn, "On"),
                         ], &mut settings.esp_mode);
 
                         ui.checkbox(obfstr!("Bomb Timer"), &mut settings.bomb_timer);
@@ -299,11 +299,11 @@ impl SettingsUI {
                     if let Some(_) = ui.tab_item(obfstr!("Aim Assist")) {
                         ui.set_next_item_width(150.0);
                         ui.combo_enum(obfstr!("Trigger Bot"), &[
-                            (KeyToggleMode::Off, "Always Off"),
-                            (KeyToggleMode::Trigger, "Trigger"),
-                            (KeyToggleMode::TriggerInverted, "Trigger Inverted"),
+                            (KeyToggleMode::Off, "Off"),
+                            (KeyToggleMode::Trigger, "Hold"),
+                            (KeyToggleMode::TriggerInverted, "Hold Inverted"),
                             (KeyToggleMode::Toggle, "Toggle"),
-                            (KeyToggleMode::AlwaysOn, "Always On"),
+                            (KeyToggleMode::AlwaysOn, "On"),
                         ], &mut settings.trigger_bot_mode);
 
                         if !matches!(settings.trigger_bot_mode, KeyToggleMode::Off | KeyToggleMode::AlwaysOn) {
@@ -346,11 +346,12 @@ impl SettingsUI {
 
                         ui.checkbox("Simple Recoil Helper", &mut settings.aim_assist_recoil);
                     }
-
+                    /* rework or just remove this tab...
                     if let Some(_) = ui.tab_item("Web Radar") {
                         ui.text(obfstr!("Operating the Valthrun Web Radar within the Valthrun Overlay is no longer supported."));
                         ui.text(obfstr!("Please use the standalone radar client."));
                     }
+                    */
 
                     if let Some(_) = ui.tab_item("Misc") {
                         ui.checkbox(obfstr!("Valthrun Watermark"), &mut settings.valthrun_watermark);
@@ -513,7 +514,7 @@ impl SettingsUI {
                 const COMBO_WIDTH: f32 = 150.0;
                 {
                     const ESP_BOX_TYPES: [(EspBoxType, &'static str); 3] = [
-                        (EspBoxType::None, "No"),
+                        (EspBoxType::None, "Off"),
                         (EspBoxType::Box2D, "2D"),
                         (EspBoxType::Box3D, "3D"),
                     ];
@@ -530,8 +531,8 @@ impl SettingsUI {
                     }
 
                     const PLAYER_SKELETON_TYPES: [(PlayerSkeletonType, &'static str); 2] = [
-                        (PlayerSkeletonType::None, "No"),
-                        (PlayerSkeletonType::Skeleton, "Show"),
+                        (PlayerSkeletonType::None, "Off"),
+                        (PlayerSkeletonType::Skeleton, "On"),
                     ];
 
                     let mut skeleton_type = if config.skeleton {
@@ -554,9 +555,9 @@ impl SettingsUI {
 
                 {
                     const HEAD_DOT_TYPES: [(EspHeadDot, &'static str); 3] = [
-                        (EspHeadDot::None, "No"),
+                        (EspHeadDot::None, "Off"),
                         (EspHeadDot::Filled, "Filled"),
-                        (EspHeadDot::NotFilled, "Not Filled"),
+                        (EspHeadDot::NotFilled, "Outlined"),
                     ];
 
                     ui.set_next_item_width(COMBO_WIDTH);
@@ -565,12 +566,12 @@ impl SettingsUI {
 
                 {
                     const TRACER_LINE_TYPES: [(EspTracePosition, &'static str); 7] = [
-                        (EspTracePosition::None, "No"),
+                        (EspTracePosition::None, "Off"),
                         (EspTracePosition::TopLeft, "Top left"),
-                        (EspTracePosition::TopCenter, "Top (center)"),
+                        (EspTracePosition::TopCenter, "Top center"),
                         (EspTracePosition::TopRight, "Top right"),
                         (EspTracePosition::BottomLeft, "Bottom left"),
-                        (EspTracePosition::BottomCenter, "Bottom (center)"),
+                        (EspTracePosition::BottomCenter, "Bottom center"),
                         (EspTracePosition::BottomRight, "Bottom right"),
                     ];
 
@@ -584,7 +585,7 @@ impl SettingsUI {
 
                 {
                     const HEALTH_BAR_TYPES: [(EspHealthBar, &'static str); 5] = [
-                        (EspHealthBar::None, "No"),
+                        (EspHealthBar::None, "Off"),
                         (EspHealthBar::Top, "Top"),
                         (EspHealthBar::Left, "Left"),
                         (EspHealthBar::Bottom, "Bottom"),
