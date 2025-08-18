@@ -346,12 +346,12 @@ impl SettingsUI {
 
                         ui.checkbox("Simple Recoil Helper", &mut settings.aim_assist_recoil);
                     }
-                    /* rework or just remove this tab...
+
                     if let Some(_) = ui.tab_item("Web Radar") {
-                        ui.text(obfstr!("Operating the Valthrun Web Radar within the Valthrun Overlay is no longer supported."));
-                        ui.text(obfstr!("Please use the standalone radar client."));
+                        ui.text(obfstr!("The Valthrun Web Radar has been moved into an own application which runs outside of the Valthrun CS2 overlay."));
+                        ui.text(obfstr!("More information on how to run the CS2 web radar can be found here:"));
+                        ui.text(obfstr!("https://wiki.valth.run/link/6"));
                     }
-                    */
 
                     if let Some(_) = ui.tab_item("Misc") {
                         ui.checkbox(obfstr!("Valthrun Watermark"), &mut settings.valthrun_watermark);
