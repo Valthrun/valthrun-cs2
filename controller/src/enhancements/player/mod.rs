@@ -484,6 +484,37 @@ impl Enhancement for PlayerESP {
                     );
                 }
 
+                let mut player_utilities = Vec::new();
+                if esp_settings.info_grenades {
+                    if pawn_info.player_has_flash > 0 {
+                        player_utilities.push(format!("Flashbang x{}", pawn_info.player_has_flash));
+                    }
+                    if pawn_info.player_has_smoke {
+                        player_utilities.push("Smoke".to_string());
+                    }
+                    if pawn_info.player_has_hegrenade {
+                        player_utilities.push("HE Grenade".to_string());
+                    }
+                    if pawn_info.player_has_molotov {
+                        player_utilities.push("Molotov".to_string());
+                    }
+                    if pawn_info.player_has_incendiary {
+                        player_utilities.push("Incendiary".to_string());
+                    }
+                    if pawn_info.player_has_decoy {
+                        player_utilities.push("Decoy".to_string());
+                    }
+
+                    if !player_utilities.is_empty() {
+                        player_info.add_line(
+                            esp_settings
+                                .info_grenades_color
+                                .calculate_color(player_rel_health, distance),
+                            &player_utilities.join(", "),
+                        );
+                    }
+                }
+
                 let mut player_flags = Vec::new();
                 if esp_settings.info_flag_kit && pawn_info.player_has_defuser {
                     player_flags.push("Kit");

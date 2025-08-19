@@ -241,6 +241,9 @@ pub struct EspPlayerSettings {
     pub info_flag_flashed: bool,
     pub info_flags_color: EspColor,
 
+    pub info_grenades: bool,
+    pub info_grenades_color: EspColor,
+
     pub head_dot: EspHeadDot,
     pub head_dot_color: EspColor,
     pub head_dot_thickness: f32,
@@ -304,6 +307,9 @@ impl EspPlayerSettings {
             info_flag_kit: false,
             info_flag_flashed: false,
             info_flags_color: color.clone(),
+
+            info_grenades: false,
+            info_grenades_color: color.clone(),
 
             head_dot: EspHeadDot::None,
             head_dot_color: color.clone(),

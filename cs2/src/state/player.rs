@@ -10,7 +10,9 @@ use anyhow::{
 use cs2_schema_cutl::EntityHandle;
 use cs2_schema_generated::cs2::client::{
     CCSPlayer_ItemServices,
+    CCSPlayer_WeaponServices,
     CGameSceneNode,
+    CPlayer_WeaponServices,
     CSkeletonInstance,
     C_BaseEntity,
     C_BasePlayerPawn,
@@ -46,6 +48,13 @@ pub struct StatePawnInfo {
     pub player_name: Option<String>,
     pub weapon: WeaponId,
     pub player_flashtime: f32,
+
+    pub player_has_flash: u32,
+    pub player_has_smoke: bool,
+    pub player_has_hegrenade: bool,
+    pub player_has_molotov: bool,
+    pub player_has_incendiary: bool,
+    pub player_has_decoy: bool,
 
     pub position: nalgebra::Vector3<f32>,
     pub rotation: f32,
@@ -91,6 +100,47 @@ impl State for StatePawnInfo {
             .cast::<dyn CCSPlayer_ItemServices>()
             .m_bHasDefuser()?;
 
+        let weapon_services = player_pawn
+            .m_pWeaponServices()?
+            .value_reference(memory.view_arc())
+            .context("m_pWeaponServices nullptr")?
+            .cast::<dyn CCSPlayer_WeaponServices>();
+
+        let ammo = weapon_services.m_iAmmo()?;
+
+        let mut player_has_flash = 0;
+        let mut player_has_smoke = false;
+        let mut player_has_hegrenade = false;
+        let mut player_has_molotov = false;
+        let mut player_has_incendiary = false;
+        let mut player_has_decoy = false;
+
+        let grenade_slots = [
+            (15, &mut player_has_smoke),
+            (13, &mut player_has_hegrenade),
+            (17, &mut player_has_decoy),
+        ];
+
+        if let Some(count) = ammo.get(14) {
+            player_has_flash = *count as u32;
+        }
+
+        for (index, flag) in grenade_slots {
+            if let Some(count) = ammo.get(index) {
+                *flag = *count > 0;
+            }
+        }
+
+        if let Some(count) = ammo.get(16) {
+            if *count > 0 {
+                match player_team {
+                    2 => player_has_molotov = true,    // Terrorist
+                    3 => player_has_incendiary = true, // Counter-Terrorist
+                    _ => {}                            // Unknown team
+                }
+            }
+        }
+
         /* Will be an instance of CSkeletonInstance */
         let game_screen_node = player_pawn
             .m_pGameSceneNode()?
@@ -131,6 +181,13 @@ impl State for StatePawnInfo {
             player_health,
             weapon: WeaponId::from_id(weapon_type).unwrap_or(WeaponId::Unknown),
             player_flashtime,
+
+            player_has_flash,
+            player_has_smoke,
+            player_has_hegrenade,
+            player_has_molotov,
+            player_has_incendiary,
+            player_has_decoy,
 
             position,
             rotation: player_pawn.m_angEyeAngles()?[1],

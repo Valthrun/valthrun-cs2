@@ -608,6 +608,7 @@ impl SettingsUI {
                 ui.checkbox(obfstr!("Health"), &mut config.info_hp_text);
                 ui.checkbox(obfstr!("Kit"), &mut config.info_flag_kit);
                 ui.checkbox(obfstr!("Flashed"), &mut config.info_flag_flashed);
+                ui.checkbox(obfstr!("Grenades"), &mut config.info_grenades);
                 ui.checkbox(obfstr!("Near only"), &mut config.near_players);
                 if config.near_players {
                     ui.same_line();
@@ -775,6 +776,13 @@ impl SettingsUI {
                         ui,
                         obfstr!("Color info player flags"),
                         &mut config.info_flags_color,
+                    );
+
+                    ui.table_next_row();
+                    Self::render_esp_settings_player_style_color(
+                        ui,
+                        obfstr!("Color info grenades"),
+                        &mut config.info_grenades_color,
                     );
                 }
             }
