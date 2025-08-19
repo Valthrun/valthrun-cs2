@@ -40,6 +40,7 @@ use imgui::{
     FontConfig,
     FontId,
     FontSource,
+    Key,
     Ui,
 };
 use obfstr::obfstr;
@@ -72,7 +73,10 @@ use crate::{
         SpectatorsListIndicator,
         TriggerBot,
     },
-    settings::save_app_settings,
+    settings::{
+        save_app_settings,
+        HotKey,
+    },
     utils::TextWithShadowUi,
     winver::version_info,
 };
@@ -151,6 +155,8 @@ pub struct Application {
     pub last_total_read_calls: usize,
 
     pub settings_visible: bool,
+    pub settings_key_warning_visible: RefCell<bool>,
+
     pub settings_dirty: bool,
     pub settings_ui: RefCell<SettingsUI>,
     pub settings_screen_capture_changed: AtomicBool,
@@ -234,6 +240,12 @@ impl Application {
                 /* overlay has just been closed */
                 self.settings_dirty = true;
             }
+        } else if !self.settings().key_settings_ignore_insert_warning
+            && self.settings().key_settings.0 != Key::Insert
+            && ui.is_key_pressed_no_repeat(Key::Insert)
+        {
+            log::trace!("Showing insert key warning");
+            *self.settings_key_warning_visible.borrow_mut() = true;
         }
 
         self.app_state.invalidate_states();
@@ -283,6 +295,53 @@ impl Application {
             let mut settings_ui = self.settings_ui.borrow_mut();
             settings_ui.render(self, ui, unicode_text)
         }
+
+        {
+            let mut warning_visible = self.settings_key_warning_visible.borrow_mut();
+            self.render_settings_key_warning(ui, &mut *warning_visible);
+        }
+    }
+
+    fn render_settings_key_warning(&self, ui: &imgui::Ui, popup_visible: &mut bool) {
+        if !*popup_visible {
+            /* do not render window */
+            return;
+        }
+
+        let mut settings = self.settings_mut();
+        ui.window("##warning_insert_key")
+            .movable(false)
+            .collapsible(false)
+            .always_auto_resize(true)
+            .position(
+                [ui.io().display_size[0] * 0.5, ui.io().display_size[1] * 0.5],
+                Condition::Always,
+            )
+            .position_pivot([0.5, 0.5])
+            .build(|| {
+                ui.text("We detected you pressed the \"INSERT\" key.");
+                ui.text("If you ment to open the Valthrun Overlay please use the \"PAUSE\" key.");
+                ui.dummy([0.0, 2.5]);
+                ui.separator();
+                ui.dummy([0.0, 2.5]);
+
+                ui.set_next_item_width(ui.content_region_avail()[0]);
+                ui.checkbox(
+                    "Do not show this warning again",
+                    &mut settings.key_settings_ignore_insert_warning,
+                );
+
+                ui.dummy([0.0, 2.5]);
+                if ui.button("Bind to INSERT") {
+                    settings.key_settings = HotKey(Key::Insert);
+                    *popup_visible = false;
+                }
+
+                ui.same_line_with_pos(ui.content_region_avail()[0] - 100.0);
+                if ui.button_with_size("Close", [100.0, 0.0]) {
+                    *popup_visible = false;
+                }
+            });
     }
 
     fn render_overlay(&self, ui: &imgui::Ui, unicode_text: &UnicodeTextRenderer) {
@@ -560,6 +619,8 @@ fn real_main(args: &AppArgs) -> anyhow::Result<()> {
         frame_read_calls: 0,
 
         settings_visible: false,
+        settings_key_warning_visible: RefCell::new(false),
+
         settings_dirty: false,
         settings_ui: RefCell::new(SettingsUI::new()),
         /* set the screen capture visibility at the beginning of the first update */
