@@ -1,6 +1,6 @@
 $ErrorActionPreference = "Stop"
 
-rustup toolchain install nightly-2024-10-21 --component rustc --component rust-std --component cargo
+rustup toolchain install nightly-2025-06-19 --component rustc --component rust-std --component cargo
 if ($LastExitCode -ne 0) {
     throw "failed to install nightly toolchain"
 }
@@ -30,6 +30,7 @@ if ($env:VT_RUSTC -ne "") {
 }
 else {
     Write-Host "Valthrun rustc download URL not set. Using standard rustc version."
+    rustup default nightly-2025-06-19
     # No need to setup anything then
 }
 
