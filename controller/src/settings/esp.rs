@@ -362,6 +362,9 @@ impl Default for EspPlayerSettings {
             info_weapon: false,
             info_weapon_color: neutral_color,
 
+            info_ammo: false,
+            info_ammo_color: neutral_color,
+
             info_flag_kit: false,
             info_flag_flashed: false,
             info_flags_color: neutral_color,
