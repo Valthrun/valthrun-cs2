@@ -19,7 +19,6 @@ use cs2_schema_generated::cs2::client::{
     C_CSPlayerPawn,
     C_CSPlayerPawnBase,
     C_EconEntity,
-    C_C4,
 };
 use utils_state::{
     State,
@@ -32,9 +31,7 @@ use crate::{
         CBoneStateData,
         CModelStateEx,
     },
-    CEntityIdentityEx,
     CS2Model,
-    ClassNameCache,
     StateCS2Memory,
     StateEntityList,
     WeaponId,
@@ -161,6 +158,7 @@ impl State for StatePawnInfo {
             .value_reference(memory.view_arc());
         let weapon_type = if let Some(weapon) = weapon {
             weapon
+                .cast::<dyn C_EconEntity>()
                 .m_AttributeManager()?
                 .m_Item()?
                 .m_iItemDefinitionIndex()?
@@ -170,29 +168,13 @@ impl State for StatePawnInfo {
 
         let player_flashtime = player_pawn.m_flFlashBangTime()?;
 
-        let player_has_bomb = entities
-            .entities()
-            .iter()
-            .find_map(|entity| {
-                let cache = states.resolve::<ClassNameCache>(()).ok()?;
-                let class_info = entity.entity_class_info().ok()?;
-                let class_name = cache.lookup(&class_info).ok()??;
-
-                if class_name != "C_C4" {
-                    return None;
-                }
-
-                let owner_handle = entity
-                    .entity_ptr::<dyn C_EconEntity>()
-                    .ok()?
-                    .value_reference(memory.view_arc())?
-                    .cast::<dyn C_C4>()
-                    .m_hOwnerEntity()
-                    .ok()?;
-
-                Some(owner_handle.get_entity_index() == handle.get_entity_index())
-            })
-            .unwrap_or(false);
+        // Use cached bomb carrier state instead of iterating through all entities
+        let player_has_bomb = if let Ok(bomb_carrier) = states.resolve::<super::BombCarrierInfo>(())
+        {
+            bomb_carrier.carrier_entity_id == Some(handle.get_entity_index())
+        } else {
+            false
+        };
 
         Ok(Self {
             controller_entity_id: if controller_handle.is_valid() {
