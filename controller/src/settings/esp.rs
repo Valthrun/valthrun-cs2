@@ -360,6 +360,7 @@ impl Default for EspPlayerSettings {
 
             info_flag_kit: false,
             info_flag_flashed: false,
+            info_flag_bomb: false,
             info_flags_color: neutral_color,
 
             info_grenades: false,
