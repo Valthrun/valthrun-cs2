@@ -9,6 +9,7 @@ export type RadarSettingsState = {
 
     iconSize: number,
     displayBombDetails: boolean,
+    bombDetailsOpacity: number,
     showAllLayers: boolean,
 
     mapStyle: string,
@@ -31,6 +32,7 @@ export const kDefaultRadarSettings: RadarSettingsState = {
     dialogOpen: false,
     iconSize: 3.0,
     displayBombDetails: true,
+    bombDetailsOpacity: 1.0,
     showAllLayers: true,
 
     displayStatistics: false,

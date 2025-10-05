@@ -58,6 +58,7 @@ export default React.memo(() => {
 
                 <TabPanel index={1} value={currentTab}>
                     <SettingSlider target={"iconSize"} title={"Icon Size"} min={0.1} max={5.0} step={0.1} />
+                    <SettingSlider target={"bombDetailsOpacity"} title={"Bomb Details Opacity"} min={0.1} max={1.0} step={0.1} />
 
                     <SettingBoolean target="displayBombDetails" title="Display Bomb Details" />
                     <SettingBoolean target="showAllLayers" title="Display all levels" />

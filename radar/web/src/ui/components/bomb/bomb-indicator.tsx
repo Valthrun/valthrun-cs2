@@ -1,6 +1,7 @@
 import { Box, Paper, Typography } from "@mui/material";
 import * as colors from "@mui/material/colors";
 import React from "react";
+import { useSelector } from "react-redux";
 import { PlantedC4State } from "../../../backend/definitions";
 import IconC4 from "./icon_c4.svg";
 import IconDefuse from "./icon_defuse.svg";
@@ -65,6 +66,8 @@ const formatTime = (time: number): string => {
 export default React.memo((props: { state: PlantedC4State }) => {
     const { state } = props;
 
+    const bombDetailsOpacity = useSelector((s: any) => (s["radar-settings"] ?? s.radarSettings ?? {}).bombDetailsOpacity ?? 1.0);
+
     let text, textColor;
     let Icon;
     switch (state.state) {
@@ -107,6 +110,7 @@ export default React.memo((props: { state: PlantedC4State }) => {
 
                 position: "relative",
                 overflow: "hidden",
+                opacity: bombDetailsOpacity,
             }}
         >
             <Box
