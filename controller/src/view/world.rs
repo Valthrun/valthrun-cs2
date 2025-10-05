@@ -221,4 +221,82 @@ impl ViewController {
             }
         }
     }
+
+    /// Calculate offscreen indicator position and rotation for a world position
+    /// Returns (screen_position, rotation_angle_radians) if the target is offscreen
+    pub fn calculate_offscreen_indicator(
+        &self,
+        world_pos: &nalgebra::Vector3<f32>,
+        distance_from_edge: f32,
+    ) -> Option<(mint::Vector2<f32>, f32)> {
+        let screen_center_x = self.screen_bounds.x / 2.0;
+        let screen_center_y = self.screen_bounds.y / 2.0;
+
+        if let Some(_) = self.world_to_screen(world_pos, false) {
+            return None;
+        }
+
+        let camera_pos = match self.get_camera_world_position() {
+            Some(pos) => pos,
+            None => {
+                return None;
+            }
+        };
+
+        // Calculate direction vector from camera to target in world space
+        let to_target = world_pos - camera_pos;
+
+        // Calculate distance to ensure we're not too close
+        let distance = to_target.norm();
+        if distance < 1.0 {
+            return None;
+        }
+
+        let forward_x = -self.view_matrix.m13;
+        let forward_y = -self.view_matrix.m23;
+        let forward_z = -self.view_matrix.m33;
+
+        let right_x = self.view_matrix.m11;
+        let right_y = self.view_matrix.m21;
+        let right_z = self.view_matrix.m31;
+
+        let forward_dot =
+            to_target.x * forward_x + to_target.y * forward_y + to_target.z * forward_z;
+        let right_dot = to_target.x * right_x + to_target.y * right_y + to_target.z * right_z;
+
+        // Calculate angle in screen space
+        // right_dot positive = right side, negative = left side
+        // forward_dot positive = in front, negative = behind
+        let angle = (-right_dot).atan2(forward_dot);
+
+        // Calculate screen position on edge
+        let bounds_x = screen_center_x - distance_from_edge;
+        let bounds_y = screen_center_y - distance_from_edge;
+
+        let sin_angle = angle.sin();
+        let cos_angle = angle.cos();
+
+        // We need to find which edge the line from center intersects first
+        let t = if sin_angle.abs() > cos_angle.abs() {
+            // More horizontal - will hit left or right edge first
+            bounds_x / sin_angle.abs()
+        } else {
+            // More vertical - will hit top or bottom edge first
+            bounds_y / cos_angle.abs()
+        };
+
+        let indicator_x = screen_center_x - t * sin_angle;
+        let indicator_y = screen_center_y + t * cos_angle;
+
+        // Rotate arrow angle by 90 degrees because we want it to point towards the target
+        let arrow_angle = angle + std::f32::consts::PI / 2.0;
+
+        Some((
+            mint::Vector2 {
+                x: indicator_x,
+                y: indicator_y,
+            },
+            arrow_angle,
+        ))
+    }
 }

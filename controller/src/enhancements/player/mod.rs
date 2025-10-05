@@ -86,6 +86,45 @@ impl PlayerESP {
 
         None
     }
+
+    fn draw_offscreen_arrow(
+        &self,
+        draw: &imgui::DrawListMut,
+        position: mint::Vector2<f32>,
+        angle: f32,
+        size: f32,
+        color: [f32; 4],
+    ) {
+        // Create arrow pointing to the right (0 radians)
+        // Then rotate it based on the angle
+        let arrow_points = [
+            [size, 0.0],                // Tip
+            [-size * 0.5, size * 0.6],  // Bottom
+            [-size * 0.5, -size * 0.6], // Top
+        ];
+
+        let cos_angle = angle.cos();
+        let sin_angle = angle.sin();
+
+        let rotated_points: Vec<[f32; 2]> = arrow_points
+            .iter()
+            .map(|[x, y]| {
+                [
+                    position.x + x * cos_angle - y * sin_angle,
+                    position.y + x * sin_angle + y * cos_angle,
+                ]
+            })
+            .collect();
+
+        draw.add_triangle(
+            rotated_points[0],
+            rotated_points[1],
+            rotated_points[2],
+            color,
+        )
+        .filled(true)
+        .build();
+    }
 }
 
 impl Enhancement for PlayerESP {
@@ -588,6 +627,40 @@ impl Enhancement for PlayerESP {
                     )
                     .thickness(esp_settings.tracer_lines_width)
                     .build();
+                }
+            }
+
+            // Draw offscreen indicators for players not visible on screen
+            if esp_settings.offscreen_arrows {
+                // Use head position for more accurate direction, fallback to body position
+                let target_position = if let Some(head_bone_index) = entry_model
+                    .bones
+                    .iter()
+                    .position(|bone| bone.name == "head_0")
+                {
+                    pawn_model
+                        .bone_states
+                        .get(head_bone_index)
+                        .map(|head_state| head_state.position)
+                        .unwrap_or(pawn_info.position)
+                } else {
+                    // If no head bone, use top of the player hull
+                    entry_model.vhull_max + pawn_info.position
+                };
+
+                if let Some((indicator_pos, angle)) = view.calculate_offscreen_indicator(
+                    &target_position,
+                    esp_settings.offscreen_arrows_distance_from_edge,
+                ) {
+                    self.draw_offscreen_arrow(
+                        &draw,
+                        indicator_pos,
+                        angle,
+                        esp_settings.offscreen_arrows_size,
+                        esp_settings
+                            .offscreen_arrows_color
+                            .calculate_color(player_rel_health, distance),
+                    );
                 }
             }
         }

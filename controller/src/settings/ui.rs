@@ -617,6 +617,10 @@ impl SettingsUI {
                     ui.slider_config("Max distance", 0.0, 50.0)
                         .build(&mut config.near_players_distance);
                 }
+
+                ui.dummy([0.0, 10.0]);
+                ui.text("Offscreen Indicators");
+                ui.checkbox(obfstr!("Offscreen arrows"), &mut config.offscreen_arrows);
             }
         }
 
@@ -792,6 +796,31 @@ impl SettingsUI {
                         ui,
                         obfstr!("Color info grenades"),
                         &mut config.info_grenades_color,
+                    );
+
+                    ui.table_next_row();
+                    Self::render_esp_settings_player_style_color(
+                        ui,
+                        obfstr!("Offscreen arrow color"),
+                        &mut config.offscreen_arrows_color,
+                    );
+
+                    ui.table_next_row();
+                    Self::render_esp_settings_player_style_width(
+                        ui,
+                        obfstr!("Offscreen arrow size"),
+                        5.0,
+                        40.0,
+                        &mut config.offscreen_arrows_size,
+                    );
+
+                    ui.table_next_row();
+                    Self::render_esp_settings_player_style_width(
+                        ui,
+                        obfstr!("Offscreen arrow distance from edge"),
+                        20.0,
+                        500.0,
+                        &mut config.offscreen_arrows_distance_from_edge,
                     );
                 }
             }
