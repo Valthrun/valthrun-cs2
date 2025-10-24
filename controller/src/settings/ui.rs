@@ -269,6 +269,7 @@ impl SettingsUI {
                         ], &mut settings.esp_mode);
 
                         ui.checkbox(obfstr!("Bomb Timer"), &mut settings.bomb_timer);
+                        ui.checkbox(obfstr!("Bomb Label"), &mut settings.bomb_label);
                         ui.checkbox(obfstr!("Spectators List"), &mut settings.spectators_list);
                         ui.checkbox(obfstr!("Grenade Helper"), &mut settings.grenade_helper.active);
                         ui.checkbox(obfstr!("Sniper Crosshair"), &mut settings.sniper_crosshair);
