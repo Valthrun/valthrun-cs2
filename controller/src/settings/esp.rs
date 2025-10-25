@@ -258,7 +258,7 @@ pub struct EspPlayerSettings {
     pub offscreen_arrows: bool,
     pub offscreen_arrows_color: EspColor,
     pub offscreen_arrows_size: f32,
-    pub offscreen_arrows_distance_from_edge: f32,
+    pub offscreen_arrows_radius_from_center: f32,
 }
 
 const ESP_COLOR_FRIENDLY: EspColor = EspColor::from_rgba(0.0, 1.0, 0.0, 0.75);
@@ -334,7 +334,7 @@ impl EspPlayerSettings {
             offscreen_arrows: false,
             offscreen_arrows_color: color.clone(),
             offscreen_arrows_size: 15.0,
-            offscreen_arrows_distance_from_edge: 20.0,
+            offscreen_arrows_radius_from_center: 50.0,
         }
     }
 }
@@ -394,7 +394,7 @@ impl Default for EspPlayerSettings {
             offscreen_arrows: false,
             offscreen_arrows_color: neutral_color,
             offscreen_arrows_size: 15.0,
-            offscreen_arrows_distance_from_edge: 20.0,
+            offscreen_arrows_radius_from_center: 50.0,
         }
     }
 }

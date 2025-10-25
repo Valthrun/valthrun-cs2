@@ -619,8 +619,8 @@ impl SettingsUI {
                 }
 
                 ui.dummy([0.0, 10.0]);
-                ui.text("Offscreen Indicators");
-                ui.checkbox(obfstr!("Offscreen arrows"), &mut config.offscreen_arrows);
+                ui.text("Offscreen Players");
+                ui.checkbox(obfstr!("Arrows"), &mut config.offscreen_arrows);
             }
         }
 
@@ -817,10 +817,10 @@ impl SettingsUI {
                     ui.table_next_row();
                     Self::render_esp_settings_player_style_width(
                         ui,
-                        obfstr!("Offscreen arrow distance from edge"),
+                        obfstr!("Offscreen arrows radius from center"),
                         20.0,
                         500.0,
-                        &mut config.offscreen_arrows_distance_from_edge,
+                        &mut config.offscreen_arrows_radius_from_center,
                     );
                 }
             }

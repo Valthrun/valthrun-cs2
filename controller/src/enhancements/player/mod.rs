@@ -650,7 +650,7 @@ impl Enhancement for PlayerESP {
 
                 if let Some((indicator_pos, angle)) = view.calculate_offscreen_indicator(
                     &target_position,
-                    esp_settings.offscreen_arrows_distance_from_edge,
+                    esp_settings.offscreen_arrows_radius_from_center,
                 ) {
                     self.draw_offscreen_arrow(
                         &draw,

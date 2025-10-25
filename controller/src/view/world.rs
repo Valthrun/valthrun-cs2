@@ -223,15 +223,17 @@ impl ViewController {
     }
 
     /// Calculate offscreen indicator position and rotation for a world position
+    /// Displays arrows in a circular pattern around the center of the screen
     /// Returns (screen_position, rotation_angle_radians) if the target is offscreen
     pub fn calculate_offscreen_indicator(
         &self,
         world_pos: &nalgebra::Vector3<f32>,
-        distance_from_edge: f32,
+        radius_from_center: f32,
     ) -> Option<(mint::Vector2<f32>, f32)> {
         let screen_center_x = self.screen_bounds.x / 2.0;
         let screen_center_y = self.screen_bounds.y / 2.0;
 
+        // Try to project to screen - if it succeeds and is within bounds, don't show indicator
         if let Some(_) = self.world_to_screen(world_pos, false) {
             return None;
         }
@@ -252,6 +254,7 @@ impl ViewController {
             return None;
         }
 
+        // Extract camera view vectors from view matrix
         let forward_x = -self.view_matrix.m13;
         let forward_y = -self.view_matrix.m23;
         let forward_z = -self.view_matrix.m33;
@@ -260,6 +263,7 @@ impl ViewController {
         let right_y = self.view_matrix.m21;
         let right_z = self.view_matrix.m31;
 
+        // Project target direction onto camera's forward and right vectors
         let forward_dot =
             to_target.x * forward_x + to_target.y * forward_y + to_target.z * forward_z;
         let right_dot = to_target.x * right_x + to_target.y * right_y + to_target.z * right_z;
@@ -269,24 +273,15 @@ impl ViewController {
         // forward_dot positive = in front, negative = behind
         let angle = (-right_dot).atan2(forward_dot);
 
-        // Calculate screen position on edge
-        let bounds_x = screen_center_x - distance_from_edge;
-        let bounds_y = screen_center_y - distance_from_edge;
+        // Calculate position on circle
+        // Position is at fixed radius from center, in the direction of the target
+        let indicator_x = screen_center_x - radius_from_center * angle.sin();
+        let indicator_y = screen_center_y + radius_from_center * angle.cos();
 
-        let sin_angle = angle.sin();
-        let cos_angle = angle.cos();
-
-        // We need to find which edge the line from center intersects first
-        let t = if sin_angle.abs() > cos_angle.abs() {
-            // More horizontal - will hit left or right edge first
-            bounds_x / sin_angle.abs()
-        } else {
-            // More vertical - will hit top or bottom edge first
-            bounds_y / cos_angle.abs()
-        };
-
-        let indicator_x = screen_center_x - t * sin_angle;
-        let indicator_y = screen_center_y + t * cos_angle;
+        // Verify final values are valid
+        if !indicator_x.is_finite() || !indicator_y.is_finite() {
+            return None;
+        }
 
         // Rotate arrow angle by 90 degrees because we want it to point towards the target
         let arrow_angle = angle + std::f32::consts::PI / 2.0;
