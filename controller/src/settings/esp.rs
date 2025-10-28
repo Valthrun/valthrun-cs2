@@ -242,6 +242,7 @@ pub struct EspPlayerSettings {
     pub info_hp_text_color: EspColor,
 
     pub info_flag_kit: bool,
+    pub info_flag_scoped: bool,
     pub info_flag_flashed: bool,
     pub info_flag_bomb: bool,
     pub info_flags_color: EspColor,
@@ -313,6 +314,7 @@ impl EspPlayerSettings {
             info_ammo_color: color.clone(),
 
             info_flag_kit: false,
+            info_flag_scoped: false,
             info_flag_flashed: false,
             info_flag_bomb: false,
             info_flags_color: color.clone(),
@@ -368,6 +370,7 @@ impl Default for EspPlayerSettings {
             info_ammo_color: neutral_color,
 
             info_flag_kit: false,
+            info_flag_scoped: false,
             info_flag_flashed: false,
             info_flag_bomb: false,
             info_flags_color: neutral_color,

@@ -51,6 +51,7 @@ pub struct StatePawnInfo {
     pub weapon: WeaponId,
     pub weapon_current_ammo: i32,
     pub weapon_reserve_ammo: i32,
+    pub player_is_scoped: bool,
     pub player_flashtime: f32,
 
     pub player_has_flash: u32,
@@ -177,6 +178,7 @@ impl State for StatePawnInfo {
         };
 
         let player_flashtime = player_pawn.m_flFlashBangTime()?;
+        let player_is_scoped = player_pawn.m_bIsScoped()?;
 
         // Use cached bomb carrier state instead of iterating through all entities
         let player_has_bomb = if let Ok(bomb_carrier) = states.resolve::<super::BombCarrierInfo>(())
@@ -203,6 +205,7 @@ impl State for StatePawnInfo {
             weapon: WeaponId::from_id(weapon_type).unwrap_or(WeaponId::Unknown),
             weapon_current_ammo,
             weapon_reserve_ammo,
+            player_is_scoped,
             player_flashtime,
 
             player_has_flash,

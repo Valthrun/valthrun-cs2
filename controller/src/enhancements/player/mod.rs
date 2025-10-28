@@ -537,6 +537,10 @@ impl Enhancement for PlayerESP {
                     player_flags.push("Bomb Carrier");
                 }
 
+                if esp_settings.info_flag_scoped && pawn_info.player_is_scoped {
+                    player_flags.push("scoped");
+                }
+
                 if esp_settings.info_flag_flashed && pawn_info.player_flashtime > 0.0 {
                     player_flags.push("flashed");
                 }
