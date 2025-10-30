@@ -140,9 +140,30 @@ impl BombLabelIndicator {
         unicode_text: &UnicodeTextRenderer,
         view: &ViewController,
         position: &nalgebra::Vector3<f32>,
-        color: ImColor32,
+        base_color: ImColor32,
     ) -> anyhow::Result<()> {
         if let Some(screen_pos) = view.world_to_screen(position, false) {
+            // Calculate distance from camera to bomb
+            let camera_pos = match view.get_camera_world_position() {
+                Some(pos) => pos,
+                None => return Ok(()),
+            };
+            let distance = (position - &camera_pos).norm();
+
+            // Calculate opacity based on distance with smooth fade
+            // Close range (0-200 units): full opacity (255)
+            // Smooth fade range (200-1000 units): gradually fade from 255 to 80
+            // Far range (1000+ units): minimum opacity (80)
+            let mut alpha = if distance < 200.0 {
+                255
+            } else if distance < 1000.0 {
+                // Smooth linear interpolation from 255 to 80
+                let t = (distance - 200.0) / (1000.0 - 200.0); // 0.0 at 200, 1.0 at 1000
+                (255.0 - t * 175.0) as u8
+            } else {
+                80
+            };
+
             let text = "Bomb";
             let text_size = ui.calc_text_size(text);
 
@@ -150,8 +171,31 @@ impl BombLabelIndicator {
             let text_x = screen_pos.x - text_size[0] / 2.0;
             let text_y = screen_pos.y - 30.0;
 
+            // Check whether mouse is near the text (within 5 pixels)
+            let mouse_pos = ui.io().mouse_pos;
+            let text_bounds_padding = 5.0;
+
+            let is_mouse_near = mouse_pos[0] >= text_x - text_bounds_padding
+                && mouse_pos[0] <= text_x + text_size[0] + text_bounds_padding
+                && mouse_pos[1] >= text_y - text_bounds_padding
+                && mouse_pos[1] <= text_y + ui.text_line_height() + text_bounds_padding;
+
+            // When mouse is near (hover) and text is in fade range, reduce opacity to minimum
+            if is_mouse_near && distance >= 200.0 && distance < 1000.0 {
+                alpha = 50;
+            }
+
+            // Apply calculated alpha to the base color
+            let base_color_u32: u32 = base_color.into();
+            let color = ImColor32::from_rgba(
+                ((base_color_u32 >> 0) & 0xFF) as u8,
+                ((base_color_u32 >> 8) & 0xFF) as u8,
+                ((base_color_u32 >> 16) & 0xFF) as u8,
+                alpha,
+            );
+
             ui.set_cursor_pos([text_x, text_y]);
-            ui.unicode_text_colored_with_shadow(unicode_text, color, text);
+            ui.unicode_text_colored_with_shadow_alpha(unicode_text, color, text);
         }
         Ok(())
     }
