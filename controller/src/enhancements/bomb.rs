@@ -1,16 +1,6 @@
-use anyhow::Context;
-use cs2::{
-    state::PlantedC4,
-    BombCarrierInfo,
-    CEntityIdentityEx,
-    ClassNameCache,
+use cs2::state::{
+    Bomb,
     PlantedC4State,
-    StateCS2Memory,
-    StateEntityList,
-};
-use cs2_schema_generated::cs2::client::{
-    C_BaseEntity,
-    C_C4,
 };
 use imgui::ImColor32;
 use overlay::UnicodeTextRenderer;
@@ -50,11 +40,15 @@ impl Enhancement for BombInfoIndicator {
         unicode_text: &UnicodeTextRenderer,
     ) -> anyhow::Result<()> {
         let settings = states.resolve::<AppSettings>(())?;
-        let bomb_state = states.resolve::<PlantedC4>(())?;
+        let bomb_state = states.resolve::<Bomb>(())?;
 
         if !settings.bomb_timer {
             return Ok(());
         }
+
+        let Some(bomb_state) = &bomb_state.planted_c4 else {
+            return Ok(());
+        };
 
         if matches!(bomb_state.state, PlantedC4State::NotPlanted) {
             return Ok(());
@@ -186,13 +180,7 @@ impl BombLabelIndicator {
             }
 
             // Apply calculated alpha to the base color
-            let base_color_u32: u32 = base_color.into();
-            let color = ImColor32::from_rgba(
-                ((base_color_u32 >> 0) & 0xFF) as u8,
-                ((base_color_u32 >> 8) & 0xFF) as u8,
-                ((base_color_u32 >> 16) & 0xFF) as u8,
-                alpha,
-            );
+            let color = ImColor32::from_rgba(base_color.r, base_color.g, base_color.b, alpha);
 
             ui.set_cursor_pos([text_x, text_y]);
             ui.unicode_text_colored_with_shadow_alpha(unicode_text, color, text);
@@ -213,67 +201,38 @@ impl Enhancement for BombLabelIndicator {
         unicode_text: &UnicodeTextRenderer,
     ) -> anyhow::Result<()> {
         let settings = states.resolve::<AppSettings>(())?;
-        let bomb_state = states.resolve::<PlantedC4>(())?;
-        let bomb_carrier = states.resolve::<BombCarrierInfo>(())?;
+        let bomb_state = states.resolve::<Bomb>(())?;
         let view = states.resolve::<ViewController>(())?;
 
         if !settings.bomb_label {
             return Ok(());
         }
 
-        // Show bomb label for planted bombs
-        if !matches!(bomb_state.state, PlantedC4State::NotPlanted) {
-            self.render_bomb_text(
-                ui,
-                unicode_text,
-                &view,
-                &bomb_state.position,
-                ImColor32::from_rgba(255, 0, 0, 255), // Red color for planted bomb
-            )?;
-        }
-
-        // Show bomb label for dropped C4 entities (when not being carried)
-        if bomb_carrier.carrier_entity_id.is_none() {
-            let memory = states.resolve::<StateCS2Memory>(())?;
-            let entities = states.resolve::<StateEntityList>(())?;
-            let class_name_cache = states.resolve::<ClassNameCache>(())?;
-
-            for entity_identity in entities.entities().iter() {
-                let class_name = class_name_cache
-                    .lookup(&entity_identity.entity_class_info()?)
-                    .context("class name")?;
-
-                if !class_name.map(|name| name == "C_C4").unwrap_or(false) {
-                    continue;
-                }
-
-                let c4_entity = entity_identity
-                    .entity_ptr::<dyn C_C4>()?
-                    .value_copy(memory.view())?
-                    .context("C4 entity nullptr")?;
-
-                // Skip if bomb is planted
-                if c4_entity.m_bBombPlanted()? {
-                    continue;
-                }
-
-                // Get the position of the dropped C4
-                let game_scene_node = entity_identity
-                    .entity_ptr::<dyn C_BaseEntity>()?
-                    .value_reference(memory.view_arc())
-                    .context("C_BaseEntity pointer was null")?
-                    .m_pGameSceneNode()?
-                    .value_reference(memory.view_arc())
-                    .context("m_pGameSceneNode pointer was null")?
-                    .copy()?;
-
-                let position = game_scene_node.m_vecAbsOrigin()?;
-
+        // Show bomb label for planted bomb
+        if let Some(planted_c4_state) = &bomb_state.planted_c4 {
+            if matches!(planted_c4_state.state, PlantedC4State::Active { .. })
+                && planted_c4_state.position != nalgebra::Vector3::default()
+            {
                 self.render_bomb_text(
                     ui,
                     unicode_text,
                     &view,
-                    &position.into(),
+                    &planted_c4_state.position,
+                    ImColor32::from_rgba(255, 0, 0, 255), // Red color for planted bomb
+                )?;
+            }
+        }
+
+        // Show bomb label for dropped bomb
+        if let Some(c4_state) = &bomb_state.c4 {
+            if c4_state.owner_entity_id.is_none()
+                && c4_state.position != nalgebra::Vector3::default()
+            {
+                self.render_bomb_text(
+                    ui,
+                    unicode_text,
+                    &view,
+                    &c4_state.position,
                     ImColor32::from_rgba(255, 165, 0, 255), // Orange color for dropped bomb
                 )?;
             }
