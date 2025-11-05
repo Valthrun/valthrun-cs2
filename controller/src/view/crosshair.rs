@@ -7,10 +7,7 @@ use cs2::{
     StateLocalPlayerController,
 };
 use cs2_schema_cutl::EntityHandle;
-use cs2_schema_generated::cs2::client::{
-    CEntityInstance,
-    C_CSPlayerPawnBase,
-};
+use cs2_schema_generated::cs2::client::CEntityInstance;
 use utils_state::{
     State,
     StateCacheType,
