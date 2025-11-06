@@ -1,5 +1,6 @@
 use cs2::state::{
     Bomb,
+    BombState,
     PlantedC4State,
 };
 use imgui::ImColor32;
@@ -28,6 +29,14 @@ const PLAYER_AVATAR_TOP_OFFSET: f32 = 0.004;
 /// % of the screens height
 const PLAYER_AVATAR_SIZE: f32 = 0.05;
 
+/// Bomb label constants
+const BOMB_LABEL_CLOSE_DISTANCE: f32 = 200.0;
+const BOMB_LABEL_FAR_DISTANCE: f32 = 1000.0;
+const BOMB_LABEL_MIN_ALPHA: u8 = 80;
+const BOMB_LABEL_HOVER_ALPHA: u8 = 50;
+const BOMB_LABEL_MOUSE_PADDING: f32 = 5.0;
+const BOMB_LABEL_Y_OFFSET: f32 = 30.0;
+
 impl Enhancement for BombInfoIndicator {
     fn update(&mut self, _ctx: &crate::UpdateContext) -> anyhow::Result<()> {
         Ok(())
@@ -40,30 +49,29 @@ impl Enhancement for BombInfoIndicator {
         unicode_text: &UnicodeTextRenderer,
     ) -> anyhow::Result<()> {
         let settings = states.resolve::<AppSettings>(())?;
-        let bomb_state = states.resolve::<Bomb>(())?;
+        let bomb = states.resolve::<Bomb>(())?;
 
         if !settings.bomb_timer {
             return Ok(());
         }
 
-        let Some(bomb_state) = &bomb_state.planted_c4 else {
-            return Ok(());
-        };
-
-        if matches!(bomb_state.state, PlantedC4State::NotPlanted) {
+        if !matches!(bomb.state, BombState::Planted) {
             return Ok(());
         }
 
+        let Some(planted_c4) = bomb.planted_c4.as_ref() else {
+            return Ok(());
+        };
+
         let group = ui.begin_group();
 
-        let line_count = match &bomb_state.state {
+        let line_count = match &planted_c4.state {
             PlantedC4State::Active { .. } => 3,
             PlantedC4State::Defused | PlantedC4State::Detonated => 2,
-            PlantedC4State::NotPlanted => unreachable!(),
         };
         let text_height = ui.text_line_height_with_spacing() * line_count as f32;
 
-        /* align to be on the right side after the players */
+        /* Align to be on the right side after the players */
         let offset_x = ui.io().display_size[0] * 1730.0 / 2560.0;
         let offset_y = ui.io().display_size[1] * PLAYER_AVATAR_TOP_OFFSET;
         let offset_y = offset_y
@@ -73,12 +81,12 @@ impl Enhancement for BombInfoIndicator {
         ui.set_cursor_pos([offset_x, offset_y]);
         ui.text_with_shadow(&format!(
             "Bomb planted {}",
-            if bomb_state.bomb_site == 0 { "A" } else { "B" }
+            if planted_c4.bomb_site == 0 { "A" } else { "B" }
         ));
 
         let mut offset_y = offset_y + ui.text_line_height_with_spacing();
 
-        match &bomb_state.state {
+        match &planted_c4.state {
             PlantedC4State::Active { time_detonation } => {
                 // Time text
                 ui.set_cursor_pos([offset_x, offset_y]);
@@ -86,7 +94,7 @@ impl Enhancement for BombInfoIndicator {
 
                 offset_y += ui.text_line_height_with_spacing();
 
-                if let Some(defuser) = &bomb_state.defuser {
+                if let Some(defuser) = &planted_c4.defuser {
                     let color = if defuser.time_remaining > *time_detonation {
                         ImColor32::from_rgba(201, 28, 28, 255) // Red
                     } else {
@@ -113,7 +121,6 @@ impl Enhancement for BombInfoIndicator {
                 ui.set_cursor_pos([offset_x, offset_y]);
                 ui.text_with_shadow("Bomb has been detonated");
             }
-            PlantedC4State::NotPlanted => unreachable!(),
         }
 
         group.end();
@@ -144,18 +151,14 @@ impl BombLabelIndicator {
             };
             let distance = (position - &camera_pos).norm();
 
-            // Calculate opacity based on distance with smooth fade
-            // Close range (0-200 units): full opacity (255)
-            // Smooth fade range (200-1000 units): gradually fade from 255 to 80
-            // Far range (1000+ units): minimum opacity (80)
-            let mut alpha = if distance < 200.0 {
+            let mut alpha = if distance < BOMB_LABEL_CLOSE_DISTANCE {
                 255
-            } else if distance < 1000.0 {
-                // Smooth linear interpolation from 255 to 80
-                let t = (distance - 200.0) / (1000.0 - 200.0); // 0.0 at 200, 1.0 at 1000
+            } else if distance < BOMB_LABEL_FAR_DISTANCE {
+                let t = (distance - BOMB_LABEL_CLOSE_DISTANCE)
+                    / (BOMB_LABEL_FAR_DISTANCE - BOMB_LABEL_CLOSE_DISTANCE);
                 (255.0 - t * 175.0) as u8
             } else {
-                80
+                BOMB_LABEL_MIN_ALPHA
             };
 
             let text = "Bomb";
@@ -163,11 +166,11 @@ impl BombLabelIndicator {
 
             // Position text above the bomb
             let text_x = screen_pos.x - text_size[0] / 2.0;
-            let text_y = screen_pos.y - 30.0;
+            let text_y = screen_pos.y - BOMB_LABEL_Y_OFFSET;
 
-            // Check whether mouse is near the text (within 5 pixels)
+            // Check whether mouse is near the text
             let mouse_pos = ui.io().mouse_pos;
-            let text_bounds_padding = 5.0;
+            let text_bounds_padding = BOMB_LABEL_MOUSE_PADDING;
 
             let is_mouse_near = mouse_pos[0] >= text_x - text_bounds_padding
                 && mouse_pos[0] <= text_x + text_size[0] + text_bounds_padding
@@ -175,8 +178,11 @@ impl BombLabelIndicator {
                 && mouse_pos[1] <= text_y + ui.text_line_height() + text_bounds_padding;
 
             // When mouse is near (hover) and text is in fade range, reduce opacity to minimum
-            if is_mouse_near && distance >= 200.0 && distance < 1000.0 {
-                alpha = 50;
+            if is_mouse_near
+                && distance >= BOMB_LABEL_CLOSE_DISTANCE
+                && distance < BOMB_LABEL_FAR_DISTANCE
+            {
+                alpha = BOMB_LABEL_HOVER_ALPHA;
             }
 
             // Apply calculated alpha to the base color
@@ -201,38 +207,38 @@ impl Enhancement for BombLabelIndicator {
         unicode_text: &UnicodeTextRenderer,
     ) -> anyhow::Result<()> {
         let settings = states.resolve::<AppSettings>(())?;
-        let bomb_state = states.resolve::<Bomb>(())?;
+        let bomb = states.resolve::<Bomb>(())?;
         let view = states.resolve::<ViewController>(())?;
 
         if !settings.bomb_label {
             return Ok(());
         }
 
+        if matches!(bomb.state, BombState::Unknown) {
+            return Ok(());
+        }
+
         // Show bomb label for planted bomb
-        if let Some(planted_c4_state) = &bomb_state.planted_c4 {
-            if matches!(planted_c4_state.state, PlantedC4State::Active { .. })
-                && planted_c4_state.position != nalgebra::Vector3::default()
-            {
+        if matches!(bomb.state, BombState::Planted) {
+            if let Some(planted_c4) = &bomb.planted_c4 {
                 self.render_bomb_text(
                     ui,
                     unicode_text,
                     &view,
-                    &planted_c4_state.position,
+                    &planted_c4.position,
                     ImColor32::from_rgba(255, 0, 0, 255), // Red color for planted bomb
                 )?;
             }
         }
 
         // Show bomb label for dropped bomb
-        if let Some(c4_state) = &bomb_state.c4 {
-            if c4_state.owner_entity_id.is_none()
-                && c4_state.position != nalgebra::Vector3::default()
-            {
+        if matches!(bomb.state, BombState::Dropped) {
+            if let Some(c4) = &bomb.c4 {
                 self.render_bomb_text(
                     ui,
                     unicode_text,
                     &view,
-                    &c4_state.position,
+                    &c4.position,
                     ImColor32::from_rgba(255, 165, 0, 255), // Orange color for dropped bomb
                 )?;
             }

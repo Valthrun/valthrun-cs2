@@ -44,9 +44,21 @@ pub enum PlantedC4State {
 
     /// Bomb has been defused
     Defused,
+}
+
+#[derive(Debug)]
+pub enum BombState {
+    /// Bomb has been planted
+    Planted,
 
     /// Bomb has not been planted
     NotPlanted,
+
+    /// Bomb has been dropped
+    Dropped,
+
+    /// Bomb state is unknown
+    Unknown,
 }
 
 /// Information about the currently active planted C4
@@ -79,6 +91,7 @@ pub struct C4 {
 pub struct Bomb {
     pub planted_c4: Option<PlantedC4>,
     pub c4: Option<C4>,
+    pub state: BombState,
 }
 
 impl State for Bomb {
@@ -90,17 +103,10 @@ impl State for Bomb {
         let entities = states.resolve::<StateEntityList>(())?;
         let class_name_cache = states.resolve::<ClassNameCache>(())?;
 
-        let mut planted_c4_state = PlantedC4 {
-            bomb_site: 0,
-            defuser: None,
-            position: Default::default(),
-            state: PlantedC4State::NotPlanted,
-        };
+        let mut planted_c4_state: Option<PlantedC4> = None;
+        let mut c4_state: Option<C4> = None;
 
-        let mut c4_state = C4 {
-            owner_entity_id: None,
-            position: Default::default(),
-        };
+        let mut bomb_state = BombState::Unknown;
 
         for entity_identity in entities.entities().iter() {
             let class_name = class_name_cache
@@ -127,6 +133,8 @@ impl State for Bomb {
 
             match class_name.as_ref().map(|s| s.as_str()) {
                 Some("C_PlantedC4") => {
+                    bomb_state = BombState::Planted;
+
                     let planted_c4_entity = entity_identity
                         .entity_ptr::<dyn C_PlantedC4>()?
                         .value_copy(memory.view())?
@@ -135,24 +143,24 @@ impl State for Bomb {
                     let bomb_site = planted_c4_entity.m_nBombSite()? as u8;
 
                     if planted_c4_entity.m_bBombDefused()? {
-                        planted_c4_state = PlantedC4 {
+                        planted_c4_state = Some(PlantedC4 {
                             bomb_site,
                             position: position.into(),
                             defuser: None,
                             state: PlantedC4State::Defused,
-                        };
+                        });
 
                         break;
                     }
 
                     let time_blow = planted_c4_entity.m_flC4Blow()?.m_Value()?;
                     if time_blow <= globals.time_2()? {
-                        planted_c4_state = PlantedC4 {
+                        planted_c4_state = Some(PlantedC4 {
                             bomb_site,
                             position: position.into(),
                             defuser: None,
                             state: PlantedC4State::Detonated,
-                        };
+                        });
 
                         break;
                     }
@@ -188,18 +196,24 @@ impl State for Bomb {
                         None
                     };
 
-                    planted_c4_state = PlantedC4 {
+                    planted_c4_state = Some(PlantedC4 {
                         bomb_site,
                         defuser: defusing,
                         position: position.into(),
                         state: PlantedC4State::Active {
                             time_detonation: time_blow - globals.time_2()?,
                         },
-                    };
+                    });
 
                     break;
                 }
                 Some("C_C4") => {
+                    if Vector3::from(position) == nalgebra::Vector3::default() {
+                        continue;
+                    }
+
+                    bomb_state = BombState::NotPlanted;
+
                     let c4_entity = entity_identity
                         .entity_ptr::<dyn C_C4>()?
                         .value_copy(memory.view())?
@@ -214,10 +228,14 @@ impl State for Bomb {
                         .is_valid()
                         .then_some(owner_entity.get_entity_index());
 
-                    c4_state = C4 {
+                    if owner_entity_id.is_none() {
+                        bomb_state = BombState::Dropped;
+                    }
+
+                    c4_state = Some(C4 {
                         owner_entity_id,
                         position: position.into(),
-                    };
+                    });
 
                     break;
                 }
@@ -225,11 +243,10 @@ impl State for Bomb {
             };
         }
 
-        let is_not_planted = matches!(planted_c4_state.state, PlantedC4State::NotPlanted);
-
         Ok(Self {
-            planted_c4: Some(planted_c4_state),
-            c4: if is_not_planted { Some(c4_state) } else { None },
+            planted_c4: planted_c4_state,
+            c4: c4_state,
+            state: bomb_state,
         })
     }
 
