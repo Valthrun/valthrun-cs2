@@ -298,54 +298,95 @@ impl SettingsUI {
                     }
 
                     if let Some(_) = ui.tab_item(obfstr!("Aim Assist")) {
-                        ui.set_next_item_width(150.0);
-                        ui.combo_enum(obfstr!("Trigger Bot"), &[
-                            (KeyToggleMode::Off, "Off"),
-                            (KeyToggleMode::Trigger, "Hold"),
-                            (KeyToggleMode::TriggerInverted, "Hold Inverted"),
-                            (KeyToggleMode::Toggle, "Toggle"),
-                            (KeyToggleMode::AlwaysOn, "On"),
-                        ], &mut settings.trigger_bot_mode);
+                        if ui.collapsing_header(obfstr!("Trigger Bot"), TreeNodeFlags::empty()) {
+                            ui.set_next_item_width(150.0);
+                            ui.combo_enum(obfstr!("Mode##trigger_bot_mode"), &[
+                                (KeyToggleMode::Off, "Off"),
+                                (KeyToggleMode::Trigger, "Hold"),
+                                (KeyToggleMode::TriggerInverted, "Hold Inverted"),
+                                (KeyToggleMode::Toggle, "Toggle"),
+                                (KeyToggleMode::AlwaysOn, "On"),
+                            ], &mut settings.trigger_bot_mode);
 
-                        if !matches!(settings.trigger_bot_mode, KeyToggleMode::Off | KeyToggleMode::AlwaysOn) {
-                            ui.button_key_optional(obfstr!("Trigger bot key"), &mut settings.key_trigger_bot, [150.0, 0.0]);
-                        }
-                        if !matches!(settings.trigger_bot_mode, KeyToggleMode::Off) {
-                            let mut values_updated = false;
-                            let slider_width = (ui.current_column_width() / 2.0 - 80.0).min(300.0).max(50.0);
-                            let slider_width_1 = (ui.current_column_width() / 2.0 - 20.0).min(300.0).max(50.0);
-
-                            ui.text(obfstr!("Trigger delay min: "));
-                            ui.same_line();
-                            ui.set_next_item_width(slider_width);
-                            values_updated |= ui.slider_config("##delay_min", 0, 300).display_format("%dms").build(&mut settings.trigger_bot_delay_min);
-                            ui.same_line();
-
-                            ui.text(" max: ");
-                            ui.same_line();
-                            ui.set_next_item_width(slider_width);
-                            values_updated |= ui.slider_config("##delay_max", 0, 300).display_format("%dms").build(&mut settings.trigger_bot_delay_max);
-
-                            ui.text(obfstr!("Shoot duration: "));
-                            ui.same_line();
-                            ui.set_next_item_width(slider_width_1);
-                            values_updated |= ui.slider_config("##shoot_duration", 0, 1000).display_format("%dms").build(&mut settings.trigger_bot_shot_duration);
-
-                            if values_updated {
-                                /* fixup min/max */
-                                let delay_min = settings.trigger_bot_delay_min.min(settings.trigger_bot_delay_max);
-                                let delay_max = settings.trigger_bot_delay_min.max(settings.trigger_bot_delay_max);
-
-                                settings.trigger_bot_delay_min = delay_min;
-                                settings.trigger_bot_delay_max = delay_max;
+                            if !matches!(settings.trigger_bot_mode, KeyToggleMode::Off | KeyToggleMode::AlwaysOn) {
+                                ui.button_key_optional(obfstr!("Trigger bot key"), &mut settings.key_trigger_bot, [150.0, 0.0]);
                             }
 
-                            ui.checkbox(obfstr!("Retest trigger target after delay"), &mut settings.trigger_bot_check_target_after_delay);
-                            ui.checkbox(obfstr!("Team Check"), &mut settings.trigger_bot_team_check);
-                            ui.separator();
+                            if !matches!(settings.trigger_bot_mode, KeyToggleMode::Off) {
+                                let mut values_updated = false;
+                                let slider_width = (ui.current_column_width() / 2.0 - 80.0).min(300.0).max(50.0);
+                                let slider_width_1 = (ui.current_column_width() / 2.0 - 20.0).min(300.0).max(50.0);
+
+                                ui.text(obfstr!("Delay min: "));
+                                ui.same_line();
+                                ui.set_next_item_width(slider_width);
+                                values_updated |= ui.slider_config("##delay_min", 0, 300).display_format("%dms").build(&mut settings.trigger_bot_delay_min);
+                                ui.same_line();
+
+                                ui.text(" max: ");
+                                ui.same_line();
+                                ui.set_next_item_width(slider_width);
+                                values_updated |= ui.slider_config("##delay_max", 0, 300).display_format("%dms").build(&mut settings.trigger_bot_delay_max);
+
+                                ui.text(obfstr!("Shoot duration: "));
+                                ui.same_line();
+                                ui.set_next_item_width(slider_width_1);
+                                values_updated |= ui.slider_config("##shoot_duration", 0, 1000).display_format("%dms").build(&mut settings.trigger_bot_shot_duration);
+
+                                if values_updated {
+                                    /* fixup min/max */
+                                    let delay_min = settings.trigger_bot_delay_min.min(settings.trigger_bot_delay_max);
+                                    let delay_max = settings.trigger_bot_delay_min.max(settings.trigger_bot_delay_max);
+
+                                    settings.trigger_bot_delay_min = delay_min;
+                                    settings.trigger_bot_delay_max = delay_max;
+                                }
+
+                                ui.checkbox(obfstr!("Retest trigger target after delay"), &mut settings.trigger_bot_check_target_after_delay);
+                                ui.checkbox(obfstr!("Team Check"), &mut settings.trigger_bot_team_check);
+                            }
                         }
 
-                        ui.checkbox("Simple Recoil Helper", &mut settings.aim_assist_recoil);
+                        if ui.collapsing_header(obfstr!("Recoil Control"), TreeNodeFlags::empty()) {
+                            ui.set_next_item_width(150.0);
+                            ui.combo_enum(obfstr!("Mode##aim_assist_recoil_mode"), &[
+                                (KeyToggleMode::Off, "Off"),
+                                (KeyToggleMode::Trigger, "Hold"),
+                                (KeyToggleMode::TriggerInverted, "Hold Inverted"),
+                                (KeyToggleMode::Toggle, "Toggle"),
+                                (KeyToggleMode::AlwaysOn, "On"),
+                            ], &mut settings.aim_assist_recoil_mode);
+
+                            if !matches!(settings.aim_assist_recoil_mode, KeyToggleMode::Off | KeyToggleMode::AlwaysOn) {
+                                ui.button_key_optional(obfstr!("Recoil control key"), &mut settings.key_aim_assist_recoil, [150.0, 0.0]);
+                            }
+
+                            if !matches!(settings.aim_assist_recoil_mode, KeyToggleMode::Off) {
+                                let slider_width = (ui.current_column_width() / 2.0 - 80.0).min(300.0).max(50.0);
+
+                                ui.text(obfstr!("After bullets: "));
+                                ui.same_line();
+                                ui.set_next_item_width(slider_width);
+                                ui.slider_config("##after_bullets", 1, 10)
+                                    .display_format("%d")
+                                    .build(&mut settings.aim_assist_recoil_min_bullets);
+
+                                ui.text(obfstr!("Horizontal: "));
+                                ui.same_line();
+                                ui.set_next_item_width(slider_width);
+                                ui.slider_config("##horizontal", 1.0, 2.0)
+                                    .display_format("%.2f")
+                                    .build(&mut settings.aim_assist_recoil_pitch);
+
+                                ui.same_line();
+                                ui.text(obfstr!(" Vertical: "));
+                                ui.same_line();
+                                ui.set_next_item_width(slider_width);
+                                ui.slider_config("##vertical", 1.0, 2.0)
+                                    .display_format("%.2f")
+                                    .build(&mut settings.aim_assist_recoil_yaw);
+                            }
+                        }
                     }
 
                     if let Some(_) = ui.tab_item("Web Radar") {
