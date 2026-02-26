@@ -180,10 +180,12 @@ impl State for StatePawnInfo {
         let player_flashtime = player_pawn.m_flFlashBangTime()?;
         let player_is_scoped = player_pawn.m_bIsScoped()?;
 
-        // Use cached bomb carrier state instead of iterating through all entities
-        let player_has_bomb = if let Ok(bomb_carrier) = states.resolve::<super::BombCarrierInfo>(())
-        {
-            bomb_carrier.carrier_entity_id == Some(handle.get_entity_index())
+        let player_has_bomb = if let Ok(bomb_state) = states.resolve::<super::Bomb>(()) {
+            bomb_state
+                .c4
+                .as_ref()
+                .map(|c4| c4.owner_entity_id == Some(handle.get_entity_index()))
+                .unwrap_or(false)
         } else {
             false
         };

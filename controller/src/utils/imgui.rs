@@ -72,6 +72,13 @@ pub trait UnicodeTextWithShadowUi {
         color: impl Into<ImColor32>,
         text: &str,
     );
+
+    fn unicode_text_colored_with_shadow_alpha(
+        &self,
+        unicode_text: &UnicodeTextRenderer,
+        color: impl Into<ImColor32>,
+        text: &str,
+    );
 }
 
 impl UnicodeTextWithShadowUi for imgui::Ui {
@@ -102,6 +109,33 @@ impl UnicodeTextWithShadowUi for imgui::Ui {
 
         self.set_cursor_pos([pos[0] + TEXT_SHADOW_OFFSET, pos[1] + TEXT_SHADOW_OFFSET]);
         unicode_text.text_colored(TEXT_SHADOW_COLOR, text);
+
+        self.set_cursor_pos(pos);
+        unicode_text.text_colored(color_vec, text);
+    }
+
+    fn unicode_text_colored_with_shadow_alpha(
+        &self,
+        unicode_text: &UnicodeTextRenderer,
+        color: impl Into<ImColor32>,
+        text: &str,
+    ) {
+        let pos = self.cursor_pos();
+        let color = color.into();
+        let color_vec = [
+            color.r as f32 / 255.0,
+            color.g as f32 / 255.0,
+            color.b as f32 / 255.0,
+            color.a as f32 / 255.0,
+        ];
+
+        // Shadow color with alpha scaled by the text alpha
+        // Shadow base opacity is 0.7, but we scale it down with the text alpha
+        let shadow_alpha = 0.7 * (color.a as f32 / 255.0);
+        let shadow_color = [0.0, 0.0, 0.0, shadow_alpha];
+
+        self.set_cursor_pos([pos[0] + TEXT_SHADOW_OFFSET, pos[1] + TEXT_SHADOW_OFFSET]);
+        unicode_text.text_colored(shadow_color, text);
 
         self.set_cursor_pos(pos);
         unicode_text.text_colored(color_vec, text);
