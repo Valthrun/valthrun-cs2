@@ -75,6 +75,10 @@ fn default_trigger_bot_mode() -> KeyToggleMode {
     KeyToggleMode::Trigger
 }
 
+fn default_recoil_control_mode() -> KeyToggleMode {
+    KeyToggleMode::Off
+}
+
 fn default_esp_configs() -> BTreeMap<String, EspConfig> {
     let mut result: BTreeMap<String, EspConfig> = Default::default();
     result.insert(
@@ -262,11 +266,20 @@ pub struct AppSettings {
     #[serde(default = "bool_false")]
     pub trigger_bot_check_target_after_delay: bool,
 
-    #[serde(default = "bool_false")]
-    pub aim_assist_recoil: bool,
+    #[serde(default = "default_recoil_control_mode")]
+    pub aim_assist_recoil_mode: KeyToggleMode,
+
+    #[serde(default = "default_key_none")]
+    pub key_aim_assist_recoil: Option<HotKey>,
 
     #[serde(default = "default_u32::<1>")]
     pub aim_assist_recoil_min_bullets: u32,
+
+    #[serde(default = "default_f32::<150, 100>")]
+    pub aim_assist_recoil_pitch: f32,
+
+    #[serde(default = "default_f32::<150, 100>")]
+    pub aim_assist_recoil_yaw: f32,
 
     #[serde(default = "bool_true")]
     pub hide_overlay_from_screen_capture: bool,

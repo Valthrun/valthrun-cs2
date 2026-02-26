@@ -128,6 +128,7 @@ pub struct UpdateContext<'a> {
     pub states: &'a StateRegistry,
 
     pub cs2: &'a Arc<CS2Handle>,
+    pub settings_visible: bool,
 }
 
 #[derive(Clone, Debug, Default, Eq, PartialEq)]
@@ -261,7 +262,7 @@ impl Application {
 
         let update_context = UpdateContext {
             cs2: &self.cs2,
-
+            settings_visible: self.settings_visible,
             states: &self.app_state,
             input: ui,
         };
