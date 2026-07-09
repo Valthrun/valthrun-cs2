@@ -1,4 +1,3 @@
-#![feature(str_from_utf16_endian)]
 use std::time::Instant;
 
 use clipboard::ClipboardSupport;

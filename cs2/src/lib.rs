@@ -1,3 +1,5 @@
+use utils_state::StateRegistry;
+
 mod handle;
 pub use handle::*;
 
@@ -41,3 +43,10 @@ pub use vtd_libum::{
 };
 
 pub mod schema_runtime;
+
+pub fn create_dump(
+    states: &StateRegistry,
+    _scope_filter: Option<&[&str]>,
+) -> anyhow::Result<schema_runtime::dump::RuntimeSchemaState> {
+    schema_runtime::dump::RuntimeSchemaState::from_game(states)
+}

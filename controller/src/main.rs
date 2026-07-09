@@ -30,7 +30,6 @@ use cs2::{
         SetupOptions,
     },
     CS2Handle,
-    ConVars,
     InterfaceError,
     StateBuildInfo,
     StateCS2Handle,
@@ -72,7 +71,6 @@ use windows::Win32::UI::Shell::IsUserAnAdmin;
 use crate::{
     enhancements::{
         sniper_crosshair::SniperCrosshair,
-        AntiAimPunsh,
         BombInfoIndicator,
         BombLabelIndicator,
         PlayerESP,
@@ -528,11 +526,6 @@ fn real_main(args: &AppArgs) -> anyhow::Result<()> {
         },
     )?;
 
-    let cvars = ConVars::new(&app_state).context("cvars")?;
-    let cvar_sensitivity = cvars
-        .find_cvar("sensitivity")
-        .context("cvar ensitivity")?
-        .context("missing cvar sensitivity")?;
 
     log::debug!("Initialize overlay");
     let app_fonts: AppFonts = Default::default();
@@ -597,7 +590,6 @@ fn real_main(args: &AppArgs) -> anyhow::Result<()> {
         cs2: cs2.clone(),
 
         enhancements: vec![
-            Rc::new(RefCell::new(AntiAimPunsh::new(cvar_sensitivity))),
             Rc::new(RefCell::new(PlayerESP::new())),
             Rc::new(RefCell::new(SpectatorsListIndicator::new())),
             Rc::new(RefCell::new(BombInfoIndicator::new())),

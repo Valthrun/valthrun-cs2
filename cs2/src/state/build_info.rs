@@ -1,4 +1,3 @@
-use anyhow::anyhow;
 use cs2_schema_cutl::CStringUtil;
 use raw_struct::{
     Copy,
@@ -28,11 +27,33 @@ impl State for StateBuildInfo {
 
     fn create(states: &StateRegistry, _params: Self::Parameter) -> anyhow::Result<Self> {
         let memory = states.resolve::<StateCS2Memory>(())?;
-        let offset = states.resolve::<StateResolvedOffset>(CS2Offset::BuildInfo)?;
 
-        let engine_build_info =
-            Copy::<dyn EngineBuildInfo>::read_object(memory.view(), offset.address)
-                .map_err(|e| anyhow!(e))?;
+        let offset = match states.resolve::<StateResolvedOffset>(CS2Offset::BuildInfo) {
+            Ok(offset) => offset,
+            Err(err) => {
+                log::warn!(
+                    "Failed to resolve CS2 build info offset: {err}. Falling back to unknown build info."
+                );
+                return Ok(Self {
+                    revision: "unknown".to_string(),
+                    build_datetime: "unknown".to_string(),
+                });
+            }
+        };
+
+        let engine_build_info = match Copy::<dyn EngineBuildInfo>::read_object(memory.view(), offset.address) {
+            Ok(engine_build_info) => engine_build_info,
+            Err(err) => {
+                log::warn!(
+                    "Failed to read CS2 build info from address 0x{:X}: {err}. Falling back to unknown build info.",
+                    offset.address
+                );
+                return Ok(Self {
+                    revision: "unknown".to_string(),
+                    build_datetime: "unknown".to_string(),
+                });
+            }
+        };
 
         Ok(Self {
             revision: engine_build_info

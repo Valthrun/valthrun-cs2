@@ -16,6 +16,15 @@ use ttf_parser::{
 
 use crate::Result;
 
+fn decode_font_name(name: &[u8]) -> String {
+    let mut units = Vec::with_capacity(name.len() / 2);
+    for chunk in name.chunks_exact(2) {
+        units.push(u16::from_be_bytes([chunk[0], chunk[1]]));
+    }
+
+    String::from_utf16_lossy(&units)
+}
+
 struct RegisteredFont {
     ttf_data: Vec<u8>,
     _font_name: String,
@@ -85,9 +94,9 @@ impl FontAtlasBuilder {
             .map(|e| {
                 let name = e.name;
                 if name[0] == 0x00 {
-                    String::from_utf16be_lossy(name).to_string()
+                    decode_font_name(&name)
                 } else {
-                    String::from_utf8_lossy(name).to_string()
+                    String::from_utf8_lossy(&name).to_string()
                 }
             })
             .unwrap_or_else(|| format!("unknown"));
@@ -155,7 +164,7 @@ impl FontAtlasBuilder {
         self.register_codepoints(value.chars().map(|c| c as u32));
     }
 
-    pub fn build_font_source(&self, size_pixels: f32) -> (Vec<FontSource>, GlyphRangeMemoryGuard) {
+    pub fn build_font_source(&self, size_pixels: f32) -> (Vec<FontSource<'_>>, GlyphRangeMemoryGuard) {
         let mut font_sources = Vec::with_capacity(self.fonts.len());
         let mut glyph_range_buffers: Vec<Vec<u32>> = Vec::with_capacity(self.fonts.len());
 

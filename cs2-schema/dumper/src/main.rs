@@ -9,10 +9,6 @@ use std::{
 
 use clap::Parser;
 use cs2::{
-    schema_runtime::{
-        self,
-        SetupOptions,
-    },
     CS2Handle,
     InterfaceError,
     StateCS2Handle,

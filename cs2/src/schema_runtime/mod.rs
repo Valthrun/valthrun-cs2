@@ -18,7 +18,7 @@ use crate::{
     StatePredefinedOffset,
 };
 
-mod dump;
+pub mod dump;
 mod generator;
 mod provider;
 

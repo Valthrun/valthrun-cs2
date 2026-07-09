@@ -69,7 +69,7 @@ impl CS2Offset {
                 Module::Engine,
                 Signature::relative_address(
                     obfstr!("client build info"),
-                    obfstr!("48 8B 1D ? ? ? ? 48 8D 3D"),
+                    obfstr!("48 8D 0D ? ? ? ? FF 15 ? ? ? ? 48 8D 15 ? ? ? ? 48 8D 0D ? ? ? ? FF 15 ? ? ? ? 48 8D 15 ? ? ? ? 48 8D 0D ? ? ? ? FF 15 ? ? ? ?"),
                     0x03,
                     0x07,
                 ),
