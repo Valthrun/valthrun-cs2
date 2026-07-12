@@ -1314,6 +1314,10 @@ impl SettingsUI {
                     map_name: "de_vertigo".to_owned(),
                     display_name: "Vertigo".to_owned(),
                 },
+                GrenadeSettingsTarget::Map {
+                    map_name: "de_cache".to_owned(),
+                    display_name: "Cache".to_owned(),
+                },
             ] {
                 self.render_grenade_target(settings, ui, &target);
             }
