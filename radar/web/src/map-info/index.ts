@@ -2,9 +2,10 @@
  * Finding Maps Source
  * Find Counter-Strike Global Offensive\game\csgo\pak01_dir.vpk
  * Open with Source Viewer ( https://github.com/ValveResourceFormat/ValveResourceFormat )
- * Locate resource/overviews
+ * Locate resource/overviews / Locate panorama/images/overheadmaps
  * */
 import { KeyValuesNode, parseKeyValues } from "./key-values";
+
 
 export type VerticalSection = {
     name: "default" | "lower",
@@ -44,6 +45,9 @@ export type LoadedMap = {
     pos_x: number,
     pos_y: number,
     scale: number,
+
+    /* Pixel width of the official radar image; the world extent is scale * imageWidth. */
+    imageWidth: number,
 
     verticalSections: VerticalSection[],
     mapStyles: MapStyle[],
@@ -133,6 +137,27 @@ for (const request of kVolumeBoundsContext.keys()) {
     kVolumeBounds[segments[segments.length - 2]] = unwrapDefault(kVolumeBoundsContext(request));
 }
 
+/*
+ * The world extent of a radar image is scale * its pixel width. Official maps
+ * use a 1024px overview while RadGen-generated maps often use 2048px, and
+ * scale is per pixel of that image. The width is read from the image itself so
+ * swapping or adding a radar image needs no generated metadata.
+ */
+const kDefaultImageWidth = 1024;
+const probeImageWidth = (url: string | undefined): Promise<number> => {
+    return new Promise((resolve) => {
+        if (!url || typeof Image === "undefined") {
+            resolve(kDefaultImageWidth);
+            return;
+        }
+
+        const image = new Image();
+        image.onload = () => resolve(image.naturalWidth || kDefaultImageWidth);
+        image.onerror = () => resolve(kDefaultImageWidth);
+        image.src = url;
+    });
+};
+
 const kOverviews: Record<string, KeyValuesNode> = {};
 for (const request of kOverviewContext.keys()) {
     const fileName = request.split("/").pop() as string;
@@ -157,7 +182,7 @@ const rootValues = (overview: KeyValuesNode): KeyValuesNode => {    for (const k
 
 const buildVerticalSections = (overview: KeyValuesNode): VerticalSection[] => {
     const sectionsNode = overview["verticalsections"] as KeyValuesNode | undefined;
-    const sections: VerticalSection[] = [];
+    const raw: { altitudeMax: number, altitudeMin: number }[] = [];
 
     if (sectionsNode) {
         for (const name of Object.keys(sectionsNode)) {
@@ -168,19 +193,28 @@ const buildVerticalSections = (overview: KeyValuesNode): VerticalSection[] => {
                 continue;
             }
 
-            sections.push({
-                name: name === "lower" ? "lower" : "default",
-                altitudeMax,
-                altitudeMin,
-            });
+            raw.push({ altitudeMax, altitudeMin });
         }
     }
 
-    if (sections.length === 0) {
-        sections.push({ name: "default", altitudeMax: 10000, altitudeMin: -10000 });
+    if (raw.length === 0) {
+        return [{ name: "default", altitudeMax: 10000, altitudeMin: -10000 }];
     }
 
-    return sections;
+    /*
+     * The UI only has two level slots (default and lower). Maps name their
+     * sections differently (nuke "lower", boulder "higher1"), so assign by
+     * order rather than by name.
+     */
+    if (raw.length > 2) {
+        console.warn(`Overview has ${raw.length} vertical sections; only the first two are used.`);
+    }
+
+    return raw.slice(0, 2).map((section, index) => ({
+        name: index === 0 ? "default" : "lower",
+        altitudeMax: section.altitudeMax,
+        altitudeMin: section.altitudeMin,
+    }));
 };
 
 const buildVolumes = (overview: KeyValuesNode, mapImages: ImageGroups | undefined, volumeBounds: Record<string, any>): MapVolume[] => {
@@ -280,18 +314,23 @@ const buildMapRegistry = (): Record<string, () => Promise<LoadedMap>> => {
             console.warn(`Map "${mapName}" has a map_default_lower.png but no "lower" vertical section.`);
         }
 
-        registry[mapName] = async (): Promise<LoadedMap> => ({
-            mapName,
-            displayName,
+        registry[mapName] = async (): Promise<LoadedMap> => {
+            const imageWidth = await probeImageWidth(mapImages.styles["default"]?.default);
 
-            pos_x: numberOr(values["pos_x"], 0),
-            pos_y: numberOr(values["pos_y"], 0),
-            scale: numberOr(values["scale"], 1),
+            return {
+                mapName,
+                displayName,
 
-            verticalSections,
-            mapStyles,
-            volumes,
-        });
+                pos_x: numberOr(values["pos_x"], 0),
+                pos_y: numberOr(values["pos_y"], 0),
+                scale: numberOr(values["scale"], 1),
+                imageWidth,
+
+                verticalSections,
+                mapStyles,
+                volumes,
+            };
+        };
     }
 
     return registry;
