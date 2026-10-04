@@ -1,3 +1,8 @@
+/* Finding Maps Source
+Find Counter-Strike Global Offensive\game\csgo\pak01_dir.vpk
+Open with Source Viewer ( https://github.com/ValveResourceFormat/ValveResourceFormat )
+Locate panorama/images/overheadmaps
+* */
 export type VerticalSection = {
     name: "default" | "lower",
     altitudeMax: number,
@@ -12,23 +17,6 @@ export type MapStyle = {
     }
 }
 
-export const kRegisteredMaps: Record<string, () => Promise<LoadedMap>> = {
-    cs_italy: () => import("./cs_italy").then((value) => value.default),
-    cs_office: () => import("./cs_office").then((value) => value.default),
-    de_ancient: () => import("./de_ancient").then((value) => value.default),
-    de_anubis: () => import("./de_anubis").then((value) => value.default),
-    de_cache: () => import("./de_cache").then((value) => value.default),
-    de_dust2: () => import("./de_dust2").then((value) => value.default),
-    de_inferno: () => import("./de_inferno").then((value) => value.default),
-    de_mills: () => import("./de_mills").then((value) => value.default),
-    de_mirage: () => import("./de_mirage").then((value) => value.default),
-    de_nuke: () => import("./de_nuke").then((value) => value.default),
-    de_overpass: () => import("./de_overpass").then((value) => value.default),
-    de_thera: () => import("./de_thera").then((value) => value.default),
-    de_train: () => import("./de_train").then((value) => value.default),
-    de_vertigo: () => import("./de_vertigo").then((value) => value.default),
-};
-
 export type LoadedMap = {
     mapName: string;
     displayName: string;
@@ -41,11 +29,70 @@ export type LoadedMap = {
     mapStyles: MapStyle[]
 };
 
+export type MapDefinition = Omit<LoadedMap, "mapName" | "displayName">;
+
+const kMapContext = import.meta.webpackContext(".", {
+    recursive: true,
+    regExp: /^\.\/[^/]+\/[^/]+\/index\.ts$/,
+    mode: "lazy",
+    chunkName: "map-[request]",
+});
+
+const displayNameFromMapName = (mapName: string): string => {
+    const suffix = mapName.includes("_") ? mapName.slice(mapName.indexOf("_") + 1) : mapName;
+    return suffix
+        .split("_")
+        .filter((part) => part.length > 0)
+        .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+        .join(" ");
+};
+
+const buildMapRegistry = (): Record<string, () => Promise<LoadedMap>> => {
+    const registry: Record<string, () => Promise<LoadedMap>> = {};
+
+    for (const request of kMapContext.keys()) {
+        const segments = request.split("/");
+        const mapName = segments[segments.length - 2];
+        const displayName = displayNameFromMapName(mapName);
+
+        /*
+        if (registry[mapName]) {
+            console.warn(`Duplicate map "${mapName}" found in multiple mode folders; ignoring "${request}".`);
+            continue;
+        }
+        */
+
+        registry[mapName] = () =>
+            kMapContext(request).then((value: { default?: MapDefinition }): LoadedMap => {
+                if (!value.default) {
+                    throw new Error(`Map "${mapName}" does not have a default export.`);
+                }
+
+                return {
+                    ...value.default,
+                    mapName,
+                    displayName,
+                };
+            });
+    }
+
+    return registry;
+};
+
+export const kRegisteredMaps: Record<string, () => Promise<LoadedMap>> = buildMapRegistry();
+
+/* Caches the in-flight/settled promise per map so repeated calls share one result. */
+const kMapCache: Record<string, Promise<LoadedMap>> = {};
+
 export const loadMap = async (name: string): Promise<LoadedMap | null> => {
     const mapInfo = kRegisteredMaps[name];
     if (!mapInfo) {
         return null;
     }
 
-    return await mapInfo();
+    if (!kMapCache[name]) {
+        kMapCache[name] = mapInfo();
+    }
+
+    return await kMapCache[name];
 };
