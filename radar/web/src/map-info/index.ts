@@ -46,9 +46,10 @@ const kMapImageContext = import.meta.webpackContext(".", {
 
 /** Turns a map folder name such as "de_dust2" into a display name such as "Dust2". */
 const displayNameFromMapName = (mapName: string): string => {
-    const suffix = mapName.includes("_") ? mapName.slice(mapName.indexOf("_") + 1) : mapName;
-    return suffix
-        .split("_")
+    const suffix = mapName.split("_").slice(1).join(" ");
+    const base = suffix.length > 0 ? suffix : mapName;
+    return base
+        .split(" ")
         .filter((part) => part.length > 0)
         .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
         .join(" ");
@@ -104,6 +105,9 @@ const buildMapStyles = (mapImages: Record<string, StyleImage> | undefined): MapS
         return styles;
     }
 
+    /* Styles without their own lower image reuse the official one, if present. */
+    const fallbackLower = mapImages["Official"]?.lower;
+
     for (const styleName of kStyleOrder) {
         const image = mapImages[styleName];
         if (!image || !image.default) {
@@ -111,8 +115,9 @@ const buildMapStyles = (mapImages: Record<string, StyleImage> | undefined): MapS
         }
 
         const map: MapStyle["map"] = { default: image.default };
-        if (image.lower) {
-            map.lower = image.lower;
+        const lower = image.lower ?? fallbackLower;
+        if (lower) {
+            map.lower = lower;
         }
 
         styles.push({ name: styleName, map });
@@ -131,7 +136,6 @@ const buildMapRegistry = (): Record<string, () => Promise<LoadedMap>> => {
         const mapImages = kMapImages[mapName];
         const mapStyles = buildMapStyles(mapImages);
 
-        /*
         if (registry[mapName]) {
             console.warn(`Duplicate map "${mapName}" found in multiple mode folders; ignoring "${request}".`);
             continue;
@@ -140,7 +144,6 @@ const buildMapRegistry = (): Record<string, () => Promise<LoadedMap>> => {
         if (!mapImages || !mapImages["Official"]) {
             console.warn(`Map "${mapName}" has no map_default.png; it will have no official radar image.`);
         }
-        */
 
         registry[mapName] = () =>
             kMapContext(request).then((value: { default?: MapDefinition }): LoadedMap => {

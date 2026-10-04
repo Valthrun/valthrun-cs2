@@ -1,0 +1,12 @@
+﻿"ar_baggage"
+{
+	"material"		"overviews/ar_baggage"
+	"pos_x"		"-1316"
+	"pos_y"		"1288"
+	"scale"		"2.539062"
+	"verticalsections"
+	{
+		"default" { "AltitudeMax" "10000" "AltitudeMin" "-5" }
+		"lower" { "AltitudeMax" "-5" "AltitudeMin" "-10000" }
+	}
+}
