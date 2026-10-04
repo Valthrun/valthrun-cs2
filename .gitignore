@@ -5,3 +5,4 @@ _*
 .idea
 kernel
 docs
+/radar/client-standalone/schema_cache/
