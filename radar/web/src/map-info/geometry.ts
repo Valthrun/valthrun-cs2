@@ -56,7 +56,12 @@ export const getMapLevel = (map: LoadedMap, position: [F32, F32, F32]): string =
 
 export const getMapPosition = (map: LoadedMap, position: [number, number, number]): [number, number] => {
     const volume = map.volumes.length > 0 ? findVolume(map, position) : null;
-    const mapSize = (volume?.scale ?? map.scale) * 1024;
+    /*
+     * The world extent of the image is scale * its pixel width. Official maps
+     * use a 1024px overview, RadGen-generated maps often use 2048px, and their
+     * scale is per-pixel for that image.
+     */
+    const mapSize = (volume?.scale ?? map.scale) * (volume ? 1024 : map.imageWidth);
 
     return [
         (position[0] - (volume?.pos_x ?? map.pos_x)) * 100 / mapSize,
