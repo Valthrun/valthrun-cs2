@@ -26,6 +26,9 @@ export type RadarSettingsState = {
 
     disablePadding: boolean;
     hideMapTitle: boolean;
+
+    showLevelOverlap: boolean;
+    levelOverlapOpacity: number;
 };
 
 export const kDefaultRadarSettings: RadarSettingsState = {
@@ -51,7 +54,10 @@ export const kDefaultRadarSettings: RadarSettingsState = {
 
     showDotOwn: true,
     disablePadding: false,
-    hideMapTitle: false
+    hideMapTitle: false,
+
+    showLevelOverlap: false,
+    levelOverlapOpacity: 0.3,
 };
 const slice = createSlice({
     name: "radar-settings",

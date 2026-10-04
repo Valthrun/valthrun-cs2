@@ -79,3 +79,30 @@ export const getMapLevelImage = (map: LoadedMap, styleName: string, level: strin
     const style = map.mapStyles.find(style => style.name === styleName) ?? map.mapStyles[0];
     return style?.map[level as keyof typeof style.map];
 };
+
+/*
+ * For a two-level map, returns the level the player is not on and whether that
+ * level is above the player's. Used to draw the other floor as a dimmed overlay.
+ */
+export const getOtherVerticalLevel = (
+    map: LoadedMap,
+    currentLevel: string,
+): { level: string, isAbove: boolean } | null => {
+    if (map.verticalSections.length !== 2) {
+        return null;
+    }
+
+    const current = map.verticalSections.find(section => section.name === currentLevel);
+    if (!current) {
+        return null;
+    }
+
+    const other = map.verticalSections.find(section => section.name !== currentLevel);
+    if (!other) {
+        return null;
+    }
+
+    /* The other level is above when its altitude range sits higher than the current one. */
+    const isAbove = other.altitudeMin >= current.altitudeMax || other.altitudeMin > current.altitudeMin;
+    return { level: other.name, isAbove };
+};
