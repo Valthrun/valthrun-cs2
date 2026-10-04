@@ -25,6 +25,7 @@ export default React.memo(() => {
     const isOpen = useAppSelector((state) => state.radarSettings.dialogOpen);
     const dispatch = useAppDispatch();
     const highlightBroadcaster = useAppSelector((state) => state.radarSettings.showDotOwn);
+    const showLevelOverlap = useAppSelector((state) => state.radarSettings.showLevelOverlap);
     const [currentTab, setCurrentTab] = useState(0);
 
     return (
@@ -63,6 +64,8 @@ export default React.memo(() => {
                     <SettingBoolean target="displayBombDetails" title="Display Bomb Details" />
                     <SettingBoolean target="showAllLayers" title="Display all levels" />
                     <SettingBoolean target="showDotOwn" title="Highlight broadacster" />
+                    <SettingBoolean target="showLevelOverlap" title="Show other-level overlap" />
+                    <SettingSliderIf target="levelOverlapOpacity" enabled={showLevelOverlap} title="Overlap opacity" min={0.05} max={1.0} step={0.05} />
                 </TabPanel>
 
                 <TabPanel index={2} value={currentTab}>
@@ -152,6 +155,23 @@ const SettingBoolean = React.memo((props: {
     );
 },
 );
+
+/* A slider that only renders while its controlling boolean is enabled. */
+const SettingSliderIf = React.memo((props: {
+    title: string,
+    target: KeysMatching<RadarSettingsState, number>,
+    enabled: boolean,
+
+    min: number,
+    max: number,
+    step: number
+}) => {
+    if (!props.enabled) {
+        return null;
+    }
+
+    return <SettingSlider {...props} />;
+});
 
 const SettingDotColor = React.memo(
     (props: { title: string; target: keyof RadarSettingsState & ("colorDotCT" | "colorDotT" | "colorDotOwn") }) => {
