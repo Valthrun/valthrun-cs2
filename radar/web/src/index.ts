@@ -8,7 +8,7 @@ container.id = "app-container";
 const appRoot = ReactDOM.createRoot(container);
 document.body.appendChild(container);
 
-import("./ui/app").then(async (app) => {
+import(/* webpackChunkName: "app" */ "./ui/app").then(async (app) => {
     await initializeAppStore();
     appRoot.render(React.createElement(app.App));
 });
