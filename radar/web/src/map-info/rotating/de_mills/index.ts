@@ -1,9 +1,9 @@
-import { MapDefinition } from "../..";
+import { MapDefinition } from "../../index";
 
 export default {
-    pos_x: -85.609764, // upper left world coordinate
-    pos_y: 2261.8025,
-    scale: 4.85,
+    pos_x: -4810, // upper left world coordinate
+    pos_y: -320,
+    scale: 5.148,
 
     verticalSections: [
         {

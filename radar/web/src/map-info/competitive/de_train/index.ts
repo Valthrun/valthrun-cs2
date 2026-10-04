@@ -8,8 +8,13 @@ export default {
     verticalSections: [
         {
             name: "default",
-            altitudeMax: 10000,
-            altitudeMin: -10000,
+            altitudeMax: 20000,
+            altitudeMin: -50,
+        },
+        {
+            name: "lower",
+            altitudeMax: -50,
+            altitudeMin: -5000,
         }
     ]
 } satisfies MapDefinition;
