@@ -42,6 +42,11 @@ module.exports = {
                 },
             },
             {
+                /* Map overview data (resource/overviews/*.txt) is inlined as a string. */
+                test: /\.txt$/,
+                type: "asset/source",
+            },
+            {
                 test: /\.(woff(2)?|eot|ttf|otf|)$/,
                 type: "asset",
                 parser: {

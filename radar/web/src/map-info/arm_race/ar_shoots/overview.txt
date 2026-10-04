@@ -1,7 +1,0 @@
-﻿"ar_shoots"
-{
-	"material"		"overviews/ar_shoots"
-	"pos_x"		"-1368"
-	"pos_y"		"1952"
-	"scale"		"2.6875"
-}

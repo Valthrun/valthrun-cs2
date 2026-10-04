@@ -1,0 +1,10 @@
+// Hand-authored overview for de_thera (not shipped with the game).
+// Values mirror the previous map-info/rotating/de_thera/index.ts.
+
+"de_thera"
+{
+	"material"	"overviews/de_thera"
+	"pos_x"		"-85.609764"
+	"pos_y"		"2261.8025"
+	"scale"		"4.85"
+}

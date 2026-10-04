@@ -1,5 +1,9 @@
 "rush_001"
 {
+	// Not part of the original overview file. The web radar has no other way to
+	// know the human readable name for this map.
+	"display_name"	"Complex"
+
 	"Volumes"
 	{
 		"room104"

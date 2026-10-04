@@ -1,7 +1,0 @@
-﻿"de_ancient_night"
-{
-	"material"		"overviews/de_ancient_night"
-	"pos_x"		"-2953"
-	"pos_y"		"2164"
-	"scale"		"5"
-}
