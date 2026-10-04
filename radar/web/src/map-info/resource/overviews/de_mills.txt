@@ -1,0 +1,10 @@
+// Hand-authored overview for de_mills (not shipped with the game).
+// Values mirror the previous map-info/rotating/de_mills/index.ts.
+
+"de_mills"
+{
+	"material"	"overviews/de_mills"
+	"pos_x"		"-4810"
+	"pos_y"		"-320"
+	"scale"		"5.148"
+}

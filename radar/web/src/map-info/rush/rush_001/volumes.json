@@ -1,0 +1,202 @@
+{
+    "room104": {
+        "minX": 60,
+        "minY": 289,
+        "maxX": 973,
+        "maxY": 736,
+        "worldMinX": 1893,
+        "worldMaxX": 4164,
+        "worldMinY": 6005,
+        "worldMaxY": 7118
+    },
+    "room101": {
+        "minX": 32,
+        "minY": 103,
+        "maxX": 1023,
+        "maxY": 974,
+        "worldMinX": 1433,
+        "worldMaxX": 3200,
+        "worldMinY": 1783,
+        "worldMaxY": 3337
+    },
+    "room102": {
+        "minX": 0,
+        "minY": 197,
+        "maxX": 908,
+        "maxY": 803,
+        "worldMinX": 1263,
+        "worldMaxX": 3057,
+        "worldMinY": -2428,
+        "worldMaxY": -1230
+    },
+    "room103": {
+        "minX": 9,
+        "minY": 194,
+        "maxX": 1019,
+        "maxY": 836,
+        "worldMinX": 1284,
+        "worldMaxX": 3680,
+        "worldMinY": -5820,
+        "worldMaxY": -4297
+    },
+    "room201": {
+        "minX": 134,
+        "minY": 105,
+        "maxX": 962,
+        "maxY": 967,
+        "worldMinX": -1459,
+        "worldMaxX": 328,
+        "worldMinY": -5895,
+        "worldMaxY": -4034
+    },
+    "room202": {
+        "minX": 0,
+        "minY": 40,
+        "maxX": 957,
+        "maxY": 1023,
+        "worldMinX": -4656,
+        "worldMaxX": -3129,
+        "worldMinY": -5600,
+        "worldMaxY": -4032
+    },
+    "room204": {
+        "minX": 0,
+        "minY": 135,
+        "maxX": 993,
+        "maxY": 1004,
+        "worldMinX": -10880,
+        "worldMaxX": -7991,
+        "worldMinY": -6057,
+        "worldMaxY": -3528
+    },
+    "room205": {
+        "minX": 0,
+        "minY": 36,
+        "maxX": 998,
+        "maxY": 1007,
+        "worldMinX": -2336,
+        "worldMaxX": 37,
+        "worldMinY": -2698,
+        "worldMaxY": -389
+    },
+    "room206": {
+        "minX": 0,
+        "minY": 7,
+        "maxX": 918,
+        "maxY": 868,
+        "worldMinX": -6008,
+        "worldMaxX": -3337,
+        "worldMinY": -2518,
+        "worldMaxY": -12
+    },
+    "room207": {
+        "minX": 44,
+        "minY": 272,
+        "maxX": 972,
+        "maxY": 742,
+        "worldMinX": -10421,
+        "worldMaxX": -7489,
+        "worldMinY": -2569,
+        "worldMaxY": -1082
+    },
+    "room208": {
+        "minX": 67,
+        "minY": 303,
+        "maxX": 949,
+        "maxY": 724,
+        "worldMinX": -2300,
+        "worldMaxX": -134,
+        "worldMinY": 1825,
+        "worldMaxY": 2861
+    },
+    "room209": {
+        "minX": 49,
+        "minY": 196,
+        "maxX": 993,
+        "maxY": 838,
+        "worldMinX": -5426,
+        "worldMaxX": -3920,
+        "worldMinY": 1959,
+        "worldMaxY": 2984
+    },
+    "room203": {
+        "minX": 111,
+        "minY": 219,
+        "maxX": 929,
+        "maxY": 786,
+        "worldMinX": -9106,
+        "worldMaxX": -6938,
+        "worldMinY": 1795,
+        "worldMaxY": 3299
+    },
+    "room211": {
+        "minX": 6,
+        "minY": 232,
+        "maxX": 969,
+        "maxY": 744,
+        "worldMinX": -3090,
+        "worldMaxX": -770,
+        "worldMinY": 5295,
+        "worldMaxY": 6530
+    },
+    "room212": {
+        "minX": 49,
+        "minY": 372,
+        "maxX": 955,
+        "maxY": 665,
+        "worldMinX": -6063,
+        "worldMaxX": -3979,
+        "worldMinY": 6066,
+        "worldMaxY": 6741
+    },
+    "room210": {
+        "minX": 310,
+        "minY": 90,
+        "maxX": 835,
+        "maxY": 901,
+        "worldMinX": -8892,
+        "worldMaxX": -6862,
+        "worldMinY": 3943,
+        "worldMaxY": 7077
+    },
+    "room401": {
+        "minX": 12,
+        "minY": 0,
+        "maxX": 1019,
+        "maxY": 954,
+        "worldMinX": 4574,
+        "worldMaxX": 7094,
+        "worldMinY": -2915,
+        "worldMaxY": -528
+    },
+    "room301": {
+        "minX": 0,
+        "minY": 45,
+        "maxX": 1011,
+        "maxY": 873,
+        "worldMinX": 4608,
+        "worldMaxX": 7233,
+        "worldMinY": 3429,
+        "worldMaxY": 5579
+    },
+    "roomparty": {
+        "minX": 277,
+        "minY": 84,
+        "maxX": 783,
+        "maxY": 920,
+        "worldMinX": 893,
+        "worldMaxX": 1697,
+        "worldMinY": -277,
+        "worldMaxY": 1051
+    },
+    "convoy": {
+        "minX": 69,
+        "minY": 468,
+        "maxX": 991,
+        "maxY": 568,
+        "worldMinX": -6405,
+        "worldMaxX": -2194,
+        "worldMinY": -8548,
+        "worldMaxY": -8087
+    }
+}

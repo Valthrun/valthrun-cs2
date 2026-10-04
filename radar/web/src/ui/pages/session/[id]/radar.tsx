@@ -2,6 +2,7 @@ import { Box, Typography } from "@mui/material";
 import * as React from "react";
 import { kDefaultRadarState, UpdateStatistics } from "../../../../backend/connection";
 import { LoadedMap, loadMap } from "../../../../map-info";
+import { getMapLevel, getMapPosition, getMapLevelImage, resetMapVolumeCache } from "../../../../map-info/geometry";
 import ImageBomb from "../../../../assets/bomb.png";
 import { useAppSelector } from "../../../../state";
 import BombIndicator from "../../../components/bomb/bomb-indicator";
@@ -220,6 +221,8 @@ const MapContainer = React.memo((props: { renderStatistics: UpdateStatistics }) 
         return getMapLevel(currentMap, position);
     }, [currentMap]));
 
+    React.useEffect(() => resetMapVolumeCache(), [currentMap]);
+
     return (
         <React.Fragment>
             <CssVariableProvider targetRef={refContainer} renderStatistics={props.renderStatistics} />
@@ -234,7 +237,8 @@ const MapContainer = React.memo((props: { renderStatistics: UpdateStatistics }) 
                 bottom: `${marginBottom}%`,
             }}>
                 {size => {
-                    if (showAllLayers && currentMap.verticalSections.length > 1) {
+                    const isVolume = currentMap.volumes.some(volume => volume.name === localMapLevel);
+                    if (showAllLayers && currentMap.verticalSections.length > 1 && !isVolume) {
                         const minAxis = Math.min(size.width, size.height);
                         const maxAxis = Math.max(size.width, size.height);
 
@@ -278,13 +282,13 @@ const MapContainer = React.memo((props: { renderStatistics: UpdateStatistics }) 
 const MapImage = React.memo((props: { level: string }) => {
     const currentMap = useCurrentMap();
     const mapStyle = useAppSelector(state => state.radarSettings.mapStyle);
-    const mapImage = currentMap.mapStyles.find(style => style.name === mapStyle) ?? currentMap.mapStyles[0] ?? null;
+    const image = React.useMemo(() => getMapLevelImage(currentMap, mapStyle, props.level), [currentMap, mapStyle, props.level]);
     return (
         <Box
             sx={{
                 height: "100%",
                 width: "100%",
-                backgroundImage: `url("${mapImage?.map[props.level as keyof typeof mapImage.map]}")`,
+                backgroundImage: `url("${image ?? ""}")`,
                 backgroundPosition: "center",
                 backgroundSize: "cover",
             }}
@@ -418,18 +422,6 @@ const MapLevel = React.memo((props: { level: string }) => {
         </Box>
     );
 });
-
-const getMapLevel = (map: LoadedMap, position: [F32, F32, F32]): string => {
-    return map.verticalSections.find(section => section.altitudeMin <= position[2] && position[2] < section.altitudeMax)?.name ?? "default";
-}
-
-const getMapPosition = (map: LoadedMap, position: [number, number, number]): [number, number] => {
-    const mapSize = map.scale * 1024;
-    return [
-        (position[0] - map.pos_x) * 100 / mapSize,
-        (position[1] - map.pos_y) * 100 / -mapSize
-    ];
-};
 
 
 export const MapPlayerPawn = React.memo((props: { pawnId: number }) => {
