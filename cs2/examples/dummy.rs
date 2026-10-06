@@ -46,7 +46,7 @@ fn main() -> anyhow::Result<()> {
                 .context("player controller nullptr")?;
 
             let player_name = controller.m_iszPlayerName()?.to_string_lossy().to_string();
-            log::info!(" - {} ({})", player_name,);
+            log::info!(" - {}", player_name);
         }
         return Ok(());
     }
