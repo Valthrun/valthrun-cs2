@@ -57,8 +57,8 @@ export default React.memo(() => {
                 <ClientStateFailed />
                 <ClientStateConnected />
                 <ClientStateDisconnected />
+                <ModalSettings />
             </SubscriberClientProvider>
-            <ModalSettings />
             <Box sx={{ position: "absolute", top: 0, right: 0, pt: 2, pr: 2 }}>
                 <ButtonToggleSettings />
             </Box>

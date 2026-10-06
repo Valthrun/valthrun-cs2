@@ -53,7 +53,7 @@ const useQueryMap = (worldName: string) => {
     });
 };
 
-const useCurrentMap = () => {
+export const useCurrentMap = () => {
     const worldName = useRadarState(
         React.useCallback(state => state.worldName, [])
     );

@@ -20,6 +20,7 @@ import { MuiColorInput } from "mui-color-input";
 import React, { useState } from "react";
 import { useAppDispatch, useAppSelector } from "../../../../state";
 import { kDefaultRadarSettings, RadarSettingsState, updateRadarSettings } from "../../../../state/radar-settings";
+import { useCurrentMap } from "./radar";
 
 export default React.memo(() => {
     const isOpen = useAppSelector((state) => state.radarSettings.dialogOpen);
@@ -221,19 +222,35 @@ const SettingDotColor = React.memo(
 );
 
 const SettingStyleSelector = React.memo(() => {
+    const map = useCurrentMap();
     const value = useAppSelector((state) => state.radarSettings.mapStyle);
     const dispatch = useAppDispatch();
+
+    const styles = map?.mapStyles ?? [];
+    const selected = styles.find(style => style.name === value)?.name
+        ?? styles[0]?.name
+        ?? "";
+
+    React.useEffect(() => {
+        if (selected && selected !== value) {
+            dispatch(updateRadarSettings({ mapStyle: selected }));
+        }
+    }, [selected, value, dispatch]);
 
     return (
         <Box>
             <Typography variant={"subtitle1"}>Map Style</Typography>
             <FormControl fullWidth>
                 <Select
-                    value={value}
+                    value={selected}
+                    disabled={styles.length === 0}
                     onChange={event => dispatch(updateRadarSettings({ mapStyle: event.target.value }))}
                 >
-                    <MenuItem value="Official">Official</MenuItem>
-                    <MenuItem value="SimpleRadar">Simple Radar</MenuItem>
+                    {styles.map(style => (
+                        <MenuItem key={style.name} value={style.name}>
+                            {style.name === "SimpleRadar" ? "Simple Radar" : style.name}
+                        </MenuItem>
+                    ))}
                 </Select>
             </FormControl>
         </Box>
