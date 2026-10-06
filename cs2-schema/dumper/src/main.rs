@@ -9,12 +9,9 @@ use std::{
 
 use clap::Parser;
 use cs2::{
-    schema_runtime::{
-        self,
-        SetupOptions,
-    },
     CS2Handle,
     InterfaceError,
+    StateBuildInfo,
     StateCS2Handle,
     StateCS2Memory,
 };
@@ -24,12 +21,11 @@ use utils_state::StateRegistry;
 #[derive(Debug, Parser)]
 #[clap(version)]
 struct Args {
-    /// Target file path where the dumped schema (offsets) should be stored.
+    /// Target file path where the dumped schema definitions should be stored.
     pub target_file: PathBuf,
 
-    /// Only dump client.dll and !GlobalTypes offsets.  
-    /// This reduces the schema file sized but does not contains all classes/enum required
-    /// to generate the schema definitions but should be enough for providing runtime offsets.
+    /// Only dump client.dll and !GlobalTypes definitions.
+    /// This reduces the file size but omits classes and enums from other modules.
     #[clap(long, short)]
     pub client_only: bool,
 }
@@ -68,7 +64,8 @@ fn main() -> anyhow::Result<()> {
     state.set(StateCS2Handle::new(cs2.clone()), ())?;
     state.set(StateCS2Memory::new(cs2.create_memory_view()), ())?;
 
-    let schema = cs2::create_dump(
+    let build_info = state.resolve::<StateBuildInfo>(())?;
+    let schema_scopes = cs2::dump_schema_scopes(
         &state,
         if args.client_only {
             Some(&["client.dll", "!GlobalTypes"])
@@ -84,13 +81,13 @@ fn main() -> anyhow::Result<()> {
         .open(&args.target_file)?;
 
     let mut output = BufWriter::new(output);
-    serde_json::to_writer_pretty(&mut output, &schema)?;
+    serde_json::to_writer_pretty(&mut output, &schema_scopes)?;
 
     let absolute_path = path::absolute(&args.target_file).unwrap_or(args.target_file.clone());
     log::info!(
         "Schema for CS2 version {} ({}) dumped to {}",
-        schema.cs2_revision,
-        schema.cs2_build_datetime,
+        build_info.revision,
+        build_info.build_datetime,
         absolute_path.display()
     );
     Ok(())
