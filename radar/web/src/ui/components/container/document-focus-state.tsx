@@ -10,14 +10,15 @@ export const DocumentFocusStateProvider = (props: {
         const setFocus = () => updateFocus(true);
         const clearFocus = () => updateFocus(false);
 
-        document.addEventListener("focusin", setFocus);
-        document.addEventListener("focusout", clearFocus);
+        // Moving focus between elements does not mean the page lost focus.
+        window.addEventListener("focus", setFocus);
+        window.addEventListener("blur", clearFocus);
 
         document.addEventListener("mouseenter", setFocus);
         document.addEventListener("mouseleave", clearFocus);
         return () => {
-            document.removeEventListener("focusin", setFocus);
-            document.removeEventListener("focusout", clearFocus);
+            window.removeEventListener("focus", setFocus);
+            window.removeEventListener("blur", clearFocus);
 
             document.removeEventListener("mouseenter", setFocus);
             document.removeEventListener("mouseleave", clearFocus);
